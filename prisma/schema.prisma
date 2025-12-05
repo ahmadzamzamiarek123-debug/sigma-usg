@@ -1,0 +1,211 @@
+// Prisma Schema untuk Sistem Fintech Kampus
+// Database: SQLite (development) / PostgreSQL (production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS (SQLite tidak support enum native, pakai String)
+// ============================================
+
+// Role: USER, OPERATOR, ADMIN
+// TransactionType: TOPUP, PAYMENT, TRANSFER_IN, TRANSFER_OUT
+// TagihanJenis: KAS, ACARA, SEMINAR, OTHER
+// Status: PENDING, APPROVED, REJECTED, SUCCESS, FAILED
+
+// ============================================
+// MODELS
+// ============================================
+
+model User {
+  id           String    @id @default(cuid())
+  role         String    @default("USER") // USER, OPERATOR, ADMIN
+  identifier   String    @unique // NIM (8 digit) / OP-XX-XXXX / ADM-XX-XXXX
+  name         String
+  prodi        String?   // nullable untuk admin
+  angkatan     String?   // tahun angkatan (untuk user)
+  passwordHash String
+  pinHash      String?   // PIN transaksi (untuk user)
+  isActive     Boolean   @default(true) // untuk soft disable
+  deletedAt    DateTime? // soft delete timestamp
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  balance           Balance?
+  transactions      Transaction[]       @relation("UserTransactions")
+  relatedTransfers  Transaction[]       @relation("RelatedTransactions")
+  pembayaran        Pembayaran[]
+  topupRequests     TopupRequest[]      @relation("UserTopupRequests")
+  validatedTopups   TopupRequest[]      @relation("AdminValidatedTopups")
+  createdTagihan    Tagihan[]
+  auditLogs         AuditLog[]
+  prodiPengeluaran  ProdiPengeluaran[]
+
+  @@index([role])
+  @@index([prodi])
+  @@index([isActive])
+}
+
+model Balance {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Float    @default(0) // dalam Rupiah
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  type          String   // TOPUP, PAYMENT, TRANSFER_IN, TRANSFER_OUT
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  description   String?
+  relatedUserId String?  // untuk transfer ke/dari user lain
+  createdBy     String?  // userId atau "SYSTEM"
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user        User  @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  relatedUser User? @relation("RelatedTransactions", fields: [relatedUserId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Tagihan {
+  id                  String    @id @default(cuid())
+  title               String
+  description         String?
+  jenis               String    // KAS, ACARA, SEMINAR, OTHER
+  prodiTarget         String?   // null = semua prodi
+  angkatanTarget      String?   // null = semua angkatan
+  nominal             Float
+  deadline            DateTime
+  isActive            Boolean   @default(true)
+  deletedAt           DateTime? // soft delete timestamp
+  createdByOperatorId String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // Relations
+  createdBy  User         @relation(fields: [createdByOperatorId], references: [id])
+  pembayaran Pembayaran[]
+
+  @@index([prodiTarget])
+  @@index([jenis])
+  @@index([isActive])
+  @@index([deadline])
+}
+
+model Pembayaran {
+  id        String    @id @default(cuid())
+  tagihanId String
+  userId    String
+  status    String    @default("PENDING") // PENDING, SUCCESS, FAILED
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  tagihan Tagihan @relation(fields: [tagihanId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tagihanId, userId]) // satu user hanya bisa bayar satu tagihan sekali
+  @@index([status])
+}
+
+model TopupRequest {
+  id                 String    @id @default(cuid())
+  userId             String
+  amount             Float
+  status             String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  evidenceUrl        String?   // URL bukti transfer (opsional)
+  rejectionReason    String?
+  createdAt          DateTime  @default(now())
+  validatedAt        DateTime?
+  validatedByAdminId String?
+
+  // Relations
+  user        User  @relation("UserTopupRequests", fields: [userId], references: [id], onDelete: Cascade)
+  validatedBy User? @relation("AdminValidatedTopups", fields: [validatedByAdminId], references: [id])
+
+  @@index([status])
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String   // TOPUP_APPROVED, TAGIHAN_CREATED, TRANSFER_SENT, dll
+  detail    String   // JSON string untuk detail
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================
+// PRODI FINANCIAL MODELS
+// ============================================
+
+model ProdiSaldo {
+  id           String   @id @default(cuid())
+  prodi        String   @unique
+  totalBalance Float    @default(0)
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  pengeluaran ProdiPengeluaran[]
+  history     ProdiSaldoHistory[]
+}
+
+model ProdiPengeluaran {
+  id          String   @id @default(cuid())
+  prodi       String
+  amount      Float
+  description String
+  createdById String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  createdBy  User       @relation(fields: [createdById], references: [id])
+  prodiSaldo ProdiSaldo @relation(fields: [prodi], references: [prodi])
+
+  @@index([prodi])
+  @@index([createdAt])
+}
+
+// NEW: History untuk grafik admin
+model ProdiSaldoHistory {
+  id        String   @id @default(cuid())
+  prodi     String
+  month     Int      // 1-12
+  year      Int
+  income    Float    @default(0) // pemasukan bulan itu
+  expense   Float    @default(0) // pengeluaran bulan itu
+  balance   Float    @default(0) // saldo akhir bulan
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  prodiSaldo ProdiSaldo @relation(fields: [prodi], references: [prodi])
+
+  @@unique([prodi, month, year])
+  @@index([prodi])
+  @@index([year, month])
+}
