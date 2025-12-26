@@ -1,86 +1,89 @@
-import { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
-import { prisma } from './prisma'
-import { detectRole, getRedirectPath } from './utils'
-import type { Role } from '@/types'
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { prisma } from "./prisma";
+import { detectRole, getRedirectPath } from "./utils";
+import type { Role } from "@/types";
 
 // Extend NextAuth types
-declare module 'next-auth' {
+declare module "next-auth" {
   interface Session {
     user: {
-      id: string
-      identifier: string
-      name: string
-      role: Role
-      prodi: string | null
-      angkatan: string | null
-    }
+      id: string;
+      identifier: string;
+      name: string;
+      role: Role;
+      prodi: string | null;
+      angkatan: string | null;
+      mustChangePassword: boolean;
+    };
   }
   interface User {
-    id: string
-    identifier: string
-    name: string
-    role: Role
-    prodi: string | null
-    angkatan: string | null
+    id: string;
+    identifier: string;
+    name: string;
+    role: Role;
+    prodi: string | null;
+    angkatan: string | null;
+    mustChangePassword: boolean;
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module "next-auth/jwt" {
   interface JWT {
-    id: string
-    identifier: string
-    role: Role
-    prodi: string | null
-    angkatan: string | null
+    id: string;
+    identifier: string;
+    role: Role;
+    prodi: string | null;
+    angkatan: string | null;
+    mustChangePassword: boolean;
   }
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        identifier: { label: 'Identifier', type: 'text' },
-        password: { label: 'Password', type: 'password' },
+        identifier: { label: "Identifier", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) {
-          throw new Error('Identifier dan password harus diisi')
+          throw new Error("Identifier dan password harus diisi");
         }
 
-        const { identifier, password } = credentials
+        const { identifier, password } = credentials;
 
         // Detect role from identifier
-        const detectedRole = detectRole(identifier)
+        const detectedRole = detectRole(identifier);
         if (!detectedRole) {
-          throw new Error('Format identifier tidak valid')
+          throw new Error("Format identifier tidak valid");
         }
 
         // Find user
         const user = await prisma.user.findUnique({
           where: { identifier },
-        })
+        });
 
         if (!user) {
-          throw new Error('Akun tidak ditemukan')
+          throw new Error("Akun tidak ditemukan");
         }
 
         // Check if user is active
         if (!user.isActive) {
-          throw new Error('Akun Anda telah dinonaktifkan. Hubungi admin.')
+          throw new Error("Akun Anda telah dinonaktifkan. Hubungi admin.");
         }
 
         // Verify role matches
         if (user.role !== detectedRole) {
-          throw new Error('Role tidak sesuai dengan format identifier')
+          throw new Error("Role tidak sesuai dengan format identifier");
         }
 
         // Verify password
-        const isValid = await bcrypt.compare(password, user.passwordHash)
+        const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
-          throw new Error('Password salah')
+          throw new Error("Password salah");
         }
 
         return {
@@ -90,50 +93,65 @@ export const authOptions: NextAuthOptions = {
           role: user.role as Role,
           prodi: user.prodi,
           angkatan: user.angkatan,
-        }
+          mustChangePassword: user.mustChangePassword,
+        };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
-        token.id = user.id
-        token.identifier = user.identifier
-        token.role = user.role
-        token.prodi = user.prodi
-        token.angkatan = user.angkatan
+        token.id = user.id;
+        token.identifier = user.identifier;
+        token.role = user.role;
+        token.prodi = user.prodi;
+        token.angkatan = user.angkatan;
+        token.mustChangePassword = user.mustChangePassword;
       }
-      return token
+
+      // Refresh mustChangePassword on update trigger
+      if (trigger === "update") {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { mustChangePassword: true },
+        });
+        if (dbUser) {
+          token.mustChangePassword = dbUser.mustChangePassword;
+        }
+      }
+
+      return token;
     },
     async session({ session, token }) {
       session.user = {
         id: token.id,
         identifier: token.identifier,
-        name: token.name || '',
+        name: token.name || "",
         role: token.role,
         prodi: token.prodi,
         angkatan: token.angkatan,
-      }
-      return session
+        mustChangePassword: token.mustChangePassword,
+      };
+      return session;
     },
     async redirect({ url, baseUrl }) {
       // Handle redirect after login
       if (url.startsWith(baseUrl)) {
-        return url
+        return url;
       }
-      return baseUrl
+      return baseUrl;
     },
   },
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: "/login",
+    error: "/login",
   },
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
   },
-  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key-change-in-production',
-}
+  secret: process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
+};
 
 // Helper to get session on server
-export { getRedirectPath }
+export { getRedirectPath };

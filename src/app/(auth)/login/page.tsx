@@ -1,51 +1,53 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { useState, useEffect } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [identifier, setIdentifier] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Initialize theme on mount
   useEffect(() => {
-    const stored = localStorage.getItem('theme')
-    if (stored === 'dark') {
-      document.documentElement.classList.add('dark')
+    const stored = localStorage.getItem("theme");
+    if (stored === "dark") {
+      document.documentElement.classList.add("dark");
     } else if (!stored) {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      document.documentElement.classList.toggle('dark', prefersDark)
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      document.documentElement.classList.toggle("dark", prefersDark);
     }
-  }, [])
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         identifier,
         password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        setError('NIM/ID atau password salah')
+        setError("NIM/ID atau password salah");
       } else {
-        router.push('/user/dashboard')
-        router.refresh()
+        router.push("/user/dashboard");
+        router.refresh();
       }
     } catch {
-      setError('Terjadi kesalahan. Coba lagi.')
+      setError("Terjadi kesalahan. Coba lagi.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -61,20 +63,20 @@ export default function LoginPage() {
         {/* Logo & Title */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Image 
-              src="/logo-usg.png" 
-              alt="USG Logo" 
-              width={80} 
+            <Image
+              src="/logo-usg.png"
+              alt="USG Logo"
+              width={80}
               height={80}
               className="object-contain"
               priority
             />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
-            Fintech USG
+            SIGMA
           </h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Masuk ke akun Anda
+            Sistem Informasi Keuangan Mahasiswa
           </p>
         </div>
 
@@ -128,12 +130,26 @@ export default function LoginPage() {
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
                     </svg>
                     Memproses...
                   </span>
-                ) : 'Masuk'}
+                ) : (
+                  "Masuk"
+                )}
               </button>
             </form>
           </div>
@@ -145,5 +161,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

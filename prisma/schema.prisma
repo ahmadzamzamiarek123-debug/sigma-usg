@@ -24,18 +24,19 @@ datasource db {
 // ============================================
 
 model User {
-  id           String    @id @default(cuid())
-  role         String    @default("USER") // USER, OPERATOR, ADMIN
-  identifier   String    @unique // NIM (8 digit) / OP-XX-XXXX / ADM-XX-XXXX
-  name         String
-  prodi        String?   // nullable untuk admin
-  angkatan     String?   // tahun angkatan (untuk user)
-  passwordHash String
-  pinHash      String?   // PIN transaksi (untuk user)
-  isActive     Boolean   @default(true) // untuk soft disable
-  deletedAt    DateTime? // soft delete timestamp
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  role               String    @default("USER") // USER, OPERATOR, ADMIN
+  identifier         String    @unique // NIM (8 digit) / OP-XX-XXXX / ADM-XX-XXXX
+  name               String
+  prodi              String?   // nullable untuk admin
+  angkatan           String?   // tahun angkatan (untuk user)
+  passwordHash       String
+  pinHash            String?   // PIN transaksi (untuk user)
+  isActive           Boolean   @default(true) // untuk soft disable
+  mustChangePassword Boolean   @default(true) // force change password on first login
+  deletedAt          DateTime? // soft delete timestamp
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   // Relations
   balance           Balance?
