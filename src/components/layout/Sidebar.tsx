@@ -195,6 +195,7 @@ const LogoutIcon = () => (
 
 const userNav: NavItem[] = [
   { label: "Dashboard", href: "/user/dashboard", icon: <HomeIcon /> },
+  { label: "Top-up Saldo", href: "/user/topup", icon: <CurrencyIcon /> },
   { label: "Bayar Tagihan", href: "/user/bayar", icon: <CreditCardIcon /> },
   { label: "Transfer", href: "/user/transfer", icon: <ArrowsIcon /> },
   { label: "Riwayat", href: "/user/riwayat", icon: <HistoryIcon /> },

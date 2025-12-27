@@ -26,9 +26,10 @@ export default function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [actionType, setActionType] = useState<
-    "toggle" | "reset" | "prodi" | null
+    "toggle" | "reset" | "prodi" | "add-balance" | null
   >(null);
   const [newProdi, setNewProdi] = useState("");
+  const [addBalanceAmount, setAddBalanceAmount] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -106,12 +107,18 @@ export default function AdminUsersPage() {
     setResult(null);
 
     try {
-      const body: { action: string; prodi?: string } = { action: "" };
+      const body: { action: string; prodi?: string; amount?: number } = {
+        action: "",
+      };
       if (actionType === "toggle") body.action = "toggle-active";
       if (actionType === "reset") body.action = "reset-password";
       if (actionType === "prodi") {
         body.action = "change-prodi";
         body.prodi = newProdi;
+      }
+      if (actionType === "add-balance") {
+        body.action = "add-balance";
+        body.amount = parseInt(addBalanceAmount);
       }
 
       const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
@@ -127,6 +134,7 @@ export default function AdminUsersPage() {
         setSelectedUser(null);
         setActionType(null);
         setNewProdi("");
+        setAddBalanceAmount("");
         fetchUsers();
       } else {
         setResult({ success: false, message: data.error });
@@ -346,6 +354,16 @@ export default function AdminUsersPage() {
                         >
                           Reset PW
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            setSelectedUser(u);
+                            setActionType("add-balance");
+                          }}
+                        >
+                          + Saldo
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -510,6 +528,8 @@ export default function AdminUsersPage() {
               : "Aktifkan User"
             : actionType === "reset"
             ? "Reset Password"
+            : actionType === "add-balance"
+            ? "Tambah Saldo"
             : "Ubah Prodi"
         }
       >
@@ -545,6 +565,24 @@ export default function AdminUsersPage() {
                 onChange={(e) => setNewProdi(e.target.value.toUpperCase())}
                 placeholder="Contoh: TI, SI, MI"
               />
+            )}
+
+            {actionType === "add-balance" && (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  Saldo saat ini:{" "}
+                  <span className="font-semibold">
+                    {formatRupiah(selectedUser.balance?.balance || 0)}
+                  </span>
+                </p>
+                <Input
+                  label="Jumlah Saldo (Rp)"
+                  type="number"
+                  value={addBalanceAmount}
+                  onChange={(e) => setAddBalanceAmount(e.target.value)}
+                  placeholder="Contoh: 100000"
+                />
+              </div>
             )}
 
             <div className="flex gap-3 pt-4">
