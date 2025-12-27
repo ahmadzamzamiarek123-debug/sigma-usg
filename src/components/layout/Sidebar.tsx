@@ -200,6 +200,7 @@ const userNav: NavItem[] = [
   { label: "Transfer", href: "/user/transfer", icon: <ArrowsIcon /> },
   { label: "Riwayat", href: "/user/riwayat", icon: <HistoryIcon /> },
   { label: "Saldo Prodi", href: "/user/saldo-prodi", icon: <BuildingIcon /> },
+  { label: "Profil", href: "/user/profil", icon: <ShieldIcon /> },
 ];
 
 const operatorNav: NavItem[] = [
@@ -220,6 +221,7 @@ const operatorNav: NavItem[] = [
     icon: <CurrencyIcon />,
   },
   { label: "Laporan", href: "/operator/laporan", icon: <ChartIcon /> },
+  { label: "Profil", href: "/operator/profil", icon: <ShieldIcon /> },
 ];
 
 const adminNav: NavItem[] = [
