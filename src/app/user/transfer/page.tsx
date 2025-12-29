@@ -1,95 +1,105 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Modal } from '@/components/ui/Modal'
-import { formatRupiah } from '@/lib/utils'
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
+import { formatRupiah } from "@/lib/utils";
 
 export default function TransferPage() {
-  const [balance, setBalance] = useState(0)
-  const [toNim, setToNim] = useState('')
-  const [amount, setAmount] = useState('')
-  const [pin, setPin] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [balance, setBalance] = useState(0);
+  const [toNim, setToNim] = useState("");
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
+  const [pin, setPin] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [result, setResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     async function fetchBalance() {
       try {
-        const res = await fetch('/api/user/balance')
-        const data = await res.json()
-        setBalance(data.data?.balance || 0)
+        const res = await fetch("/api/user/balance");
+        const data = await res.json();
+        setBalance(data.data?.balance || 0);
       } catch (error) {
-        console.error('Error fetching balance:', error)
+        console.error("Error fetching balance:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchBalance()
-  }, [])
+    fetchBalance();
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!toNim || !amount || !pin) {
-      setResult({ success: false, message: 'Semua field harus diisi' })
-      return
+      setResult({ success: false, message: "Semua field harus diisi" });
+      return;
     }
     if (!/^\d{8}$/.test(toNim)) {
-      setResult({ success: false, message: 'NIM harus 8 digit angka' })
-      return
+      setResult({ success: false, message: "NIM harus 8 digit angka" });
+      return;
     }
     if (Number(amount) <= 0) {
-      setResult({ success: false, message: 'Nominal harus lebih dari 0' })
-      return
+      setResult({ success: false, message: "Nominal harus lebih dari 0" });
+      return;
     }
     if (Number(amount) > balance) {
-      setResult({ success: false, message: 'Saldo tidak mencukupi' })
-      return
+      setResult({ success: false, message: "Saldo tidak mencukupi" });
+      return;
     }
     if (pin.length !== 6) {
-      setResult({ success: false, message: 'PIN harus 6 digit' })
-      return
+      setResult({ success: false, message: "PIN harus 6 digit" });
+      return;
     }
-    setResult(null)
-    setShowConfirmModal(true)
+    if (message.length > 200) {
+      setResult({ success: false, message: "Pesan maksimal 200 karakter" });
+      return;
+    }
+    setResult(null);
+    setShowConfirmModal(true);
   }
 
   async function handleConfirmTransfer() {
-    setIsSubmitting(true)
-    setResult(null)
+    setIsSubmitting(true);
+    setResult(null);
 
     try {
-      const res = await fetch('/api/user/transfer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/user/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           toNim,
           amount: Number(amount),
           pin,
+          message: message.trim() || undefined,
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (data.success) {
-        setResult({ success: true, message: data.message })
-        setBalance(data.data.newBalance)
-        setToNim('')
-        setAmount('')
-        setPin('')
+        setResult({ success: true, message: data.message });
+        setBalance(data.data.newBalance);
+        setToNim("");
+        setAmount("");
+        setMessage("");
+        setPin("");
       } else {
-        setResult({ success: false, message: data.error })
+        setResult({ success: false, message: data.error });
       }
     } catch {
-      setResult({ success: false, message: 'Terjadi kesalahan' })
+      setResult({ success: false, message: "Terjadi kesalahan" });
     } finally {
-      setIsSubmitting(false)
-      setShowConfirmModal(false)
+      setIsSubmitting(false);
+      setShowConfirmModal(false);
     }
   }
 
@@ -101,7 +111,7 @@ export default function TransferPage() {
           <div className="h-64 bg-gray-200 rounded-2xl"></div>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   return (
@@ -116,7 +126,9 @@ export default function TransferPage() {
       <Card variant="gradient" className="mb-8">
         <CardContent className="py-6">
           <p className="text-white/80 text-sm mb-1">Saldo Tersedia</p>
-          <p className="text-3xl font-bold text-white">{formatRupiah(balance)}</p>
+          <p className="text-3xl font-bold text-white">
+            {formatRupiah(balance)}
+          </p>
         </CardContent>
       </Card>
 
@@ -132,8 +144,18 @@ export default function TransferPage() {
               onChange={(e) => setToNim(e.target.value)}
               maxLength={8}
               icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
               }
             />
@@ -144,10 +166,27 @@ export default function TransferPage() {
               placeholder="Contoh: 50000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              icon={
-                <span className="text-sm font-medium">Rp</span>
-              }
+              icon={<span className="text-sm font-medium">Rp</span>}
             />
+
+            {/* Message Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pesan{" "}
+                <span className="text-gray-400 font-normal">(opsional)</span>
+              </label>
+              <textarea
+                placeholder="Contoh: Bayar makan siang..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                maxLength={200}
+                rows={3}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none text-gray-900 placeholder:text-gray-400"
+              />
+              <p className="text-xs text-gray-400 mt-1 text-right">
+                {message.length}/200
+              </p>
+            </div>
 
             <Input
               label="PIN Transaksi"
@@ -157,21 +196,47 @@ export default function TransferPage() {
               onChange={(e) => setPin(e.target.value)}
               maxLength={6}
               icon={
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
                 </svg>
               }
             />
 
             {result && (
-              <div className={`p-4 rounded-xl ${result.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <div
+                className={`p-4 rounded-xl ${
+                  result.success
+                    ? "bg-green-50 text-green-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
                 {result.message}
               </div>
             )}
 
             <Button type="submit" className="w-full">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                />
               </svg>
               Transfer Sekarang
             </Button>
@@ -180,7 +245,11 @@ export default function TransferPage() {
       </Card>
 
       {/* Confirmation Modal */}
-      <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Konfirmasi Transfer">
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title="Konfirmasi Transfer"
+      >
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <div className="flex justify-between">
@@ -189,24 +258,40 @@ export default function TransferPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Nominal</span>
-              <span className="font-semibold text-indigo-600">{formatRupiah(Number(amount))}</span>
+              <span className="font-semibold text-indigo-600">
+                {formatRupiah(Number(amount))}
+              </span>
             </div>
+            {message.trim() && (
+              <div className="pt-2 border-t border-gray-200">
+                <span className="text-gray-500 text-sm block mb-1">Pesan</span>
+                <p className="text-gray-800 text-sm">{message}</p>
+              </div>
+            )}
           </div>
-          
+
           <p className="text-sm text-gray-500 text-center">
             Pastikan data sudah benar. Transfer tidak dapat dibatalkan.
           </p>
 
           <div className="flex gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowConfirmModal(false)} className="flex-1">
+            <Button
+              variant="secondary"
+              onClick={() => setShowConfirmModal(false)}
+              className="flex-1"
+            >
               Batal
             </Button>
-            <Button onClick={handleConfirmTransfer} isLoading={isSubmitting} className="flex-1">
+            <Button
+              onClick={handleConfirmTransfer}
+              isLoading={isSubmitting}
+              className="flex-1"
+            >
               Konfirmasi
             </Button>
           </div>
         </div>
       </Modal>
     </DashboardLayout>
-  )
+  );
 }

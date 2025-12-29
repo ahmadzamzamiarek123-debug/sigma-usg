@@ -42,14 +42,14 @@ export async function middleware(request: NextRequest) {
     isProtectedRoute &&
     token.mustChangePassword === true
   ) {
-    return NextResponse.redirect(new URL("/change-password", request.url));
+    return NextResponse.redirect(new URL("/user/profil", request.url));
   }
 
   // Redirect authenticated users away from auth routes (login)
   if (isAuthenticated && isAuthRoute) {
     // If must change password, redirect to change-password
     if (token.mustChangePassword === true) {
-      return NextResponse.redirect(new URL("/change-password", request.url));
+      return NextResponse.redirect(new URL("/user/profil", request.url));
     }
 
     const role = token.role as string;
