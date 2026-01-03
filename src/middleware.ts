@@ -31,27 +31,17 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   const isChangePasswordRoute = pathname.startsWith(changePasswordRoute);
 
-  // Allow change-password route for authenticated users who need to change password
+  // Allow change-password route for authenticated users
   if (isAuthenticated && isChangePasswordRoute) {
     return NextResponse.next();
   }
 
-  // Force redirect to change-password if mustChangePassword is true
-  if (
-    isAuthenticated &&
-    isProtectedRoute &&
-    token.mustChangePassword === true
-  ) {
-    return NextResponse.redirect(new URL("/user/profil", request.url));
-  }
+  // NOTE: mustChangePassword redirect is DISABLED
+  // Users can change their password via Profile page when they want
+  // This prevents the "page isn't working" error for new users
 
   // Redirect authenticated users away from auth routes (login)
   if (isAuthenticated && isAuthRoute) {
-    // If must change password, redirect to change-password
-    if (token.mustChangePassword === true) {
-      return NextResponse.redirect(new URL("/user/profil", request.url));
-    }
-
     const role = token.role as string;
     let redirectPath = "/user/dashboard";
 

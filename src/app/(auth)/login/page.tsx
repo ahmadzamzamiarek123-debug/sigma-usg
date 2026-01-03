@@ -40,10 +40,20 @@ export default function LoginPage() {
 
       if (result?.error) {
         setError("NIM/ID atau password salah");
-      } else {
-        router.push("/user/dashboard");
-        router.refresh();
+        setIsLoading(false);
+        return;
       }
+
+      // Determine redirect path based on identifier prefix
+      let redirectPath = "/user/dashboard";
+      if (identifier.startsWith("ADM-")) {
+        redirectPath = "/admin/dashboard";
+      } else if (identifier.startsWith("OP-")) {
+        redirectPath = "/operator/dashboard";
+      }
+
+      router.push(redirectPath);
+      router.refresh();
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {

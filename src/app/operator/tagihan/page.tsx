@@ -36,6 +36,11 @@ export default function OperatorTagihanPage() {
     message: string;
   } | null>(null);
 
+  // Delete modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -56,6 +61,32 @@ export default function OperatorTagihanPage() {
       console.error("Error fetching tagihan:", error);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleDeleteTagihan() {
+    if (!selectedTagihan) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/tagihan/${selectedTagihan.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setResult({ success: true, message: "Tagihan berhasil dihapus" });
+        setShowDeleteModal(false);
+        setSelectedTagihan(null);
+        fetchTagihan();
+      } else {
+        setResult({ success: false, message: data.error });
+      }
+    } catch {
+      setResult({ success: false, message: "Terjadi kesalahan" });
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -226,13 +257,26 @@ export default function OperatorTagihanPage() {
                   <p>Target: {t.angkatanTarget || "Semua angkatan"}</p>
                   <p>Deadline: {formatDate(t.deadline)}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Sudah Bayar</span>
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Sudah Bayar
+                    </span>
                     <span className="font-semibold text-green-600">
                       {t.paidCount} orang
                     </span>
                   </div>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedTagihan(t);
+                      setShowDeleteModal(true);
+                    }}
+                  >
+                    Hapus Tagihan
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -311,6 +355,56 @@ export default function OperatorTagihanPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedTagihan(null);
+        }}
+        title="Hapus Tagihan"
+      >
+        {selectedTagihan && (
+          <div className="space-y-4">
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+              <p className="text-sm text-red-700 dark:text-red-300">
+                Apakah Anda yakin ingin menghapus tagihan berikut?
+              </p>
+            </div>
+
+            <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
+              <p className="font-semibold text-gray-900 dark:text-gray-100">
+                {selectedTagihan.title}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {formatRupiah(selectedTagihan.nominal)}
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedTagihan(null);
+                }}
+                className="flex-1"
+              >
+                Batal
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteTagihan}
+                isLoading={isDeleting}
+                className="flex-1"
+              >
+                Ya, Hapus
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </DashboardLayout>
   );

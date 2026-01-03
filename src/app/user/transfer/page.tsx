@@ -22,6 +22,15 @@ export default function TransferPage() {
     message: string;
   } | null>(null);
 
+  // NIM Lookup state
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [recipient, setRecipient] = useState<{
+    name: string;
+    prodi: string | null;
+    angkatan: string | null;
+  } | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
   useEffect(() => {
     async function fetchBalance() {
       try {
@@ -36,6 +45,42 @@ export default function TransferPage() {
     }
     fetchBalance();
   }, []);
+
+  // Real-time NIM lookup
+  useEffect(() => {
+    const lookupNim = async () => {
+      if (toNim.length !== 8) {
+        setRecipient(null);
+        setLookupError(null);
+        return;
+      }
+
+      setIsLookingUp(true);
+      setLookupError(null);
+
+      try {
+        const res = await fetch(`/api/user/lookup?nim=${toNim}`);
+        const data = await res.json();
+
+        if (data.success) {
+          setRecipient(data.data);
+          setLookupError(null);
+        } else {
+          setRecipient(null);
+          setLookupError(data.error);
+        }
+      } catch {
+        setRecipient(null);
+        setLookupError("Gagal mencari NIM");
+      } finally {
+        setIsLookingUp(false);
+      }
+    };
+
+    // Debounce lookup
+    const timer = setTimeout(lookupNim, 500);
+    return () => clearTimeout(timer);
+  }, [toNim]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -159,6 +204,32 @@ export default function TransferPage() {
                 </svg>
               }
             />
+
+            {/* Recipient Lookup Result */}
+            {isLookingUp && (
+              <div className="-mt-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg animate-pulse">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Mencari...
+                </p>
+              </div>
+            )}
+            {recipient && !isLookingUp && (
+              <div className="-mt-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
+                <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                  ✓ {recipient.name}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  {recipient.prodi} - Angkatan {recipient.angkatan}
+                </p>
+              </div>
+            )}
+            {lookupError && !isLookingUp && (
+              <div className="-mt-3 p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  ✗ {lookupError}
+                </p>
+              </div>
+            )}
 
             <Input
               label="Nominal Transfer"
