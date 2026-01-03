@@ -265,32 +265,32 @@ export default function AdminUsersPage() {
       )}
 
       {/* Users Table */}
-      <Card className="bg-white border-gray-100">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   NIM
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   Nama
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   Prodi
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   Saldo
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   Status
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
                   Aksi
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
@@ -301,12 +301,12 @@ export default function AdminUsersPage() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-12 text-center text-gray-500"
+                    className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
                     Tidak ada user.{" "}
                     <button
                       onClick={() => setShowCreateModal(true)}
-                      className="text-indigo-600 hover:underline"
+                      className="text-indigo-600 dark:text-indigo-400 hover:underline"
                     >
                       Buat user baru
                     </button>
@@ -314,17 +314,20 @@ export default function AdminUsersPage() {
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 text-sm font-mono text-gray-900">
+                  <tr
+                    key={u.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <td className="px-4 sm:px-6 py-4 text-sm font-mono text-gray-900 dark:text-gray-100">
                       {u.identifier}
                     </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                       {u.name}
                     </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm text-gray-600">
+                    <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                       {u.prodi || "-"}
                     </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                       {formatRupiah(u.balance?.balance || 0)}
                     </td>
                     <td className="px-4 sm:px-6 py-4">

@@ -44,19 +44,17 @@ export default function LoginPage() {
         return;
       }
 
-      // Determine redirect path based on identifier prefix
-      let redirectPath = "/user/dashboard";
+      // CRITICAL: Redirect based on identifier prefix using window.location
+      // This ensures a full page reload to properly fetch the session
       if (identifier.startsWith("ADM-")) {
-        redirectPath = "/admin/dashboard";
+        window.location.href = "/admin/dashboard";
       } else if (identifier.startsWith("OP-")) {
-        redirectPath = "/operator/dashboard";
+        window.location.href = "/operator/dashboard";
+      } else {
+        window.location.href = "/user/dashboard";
       }
-
-      router.push(redirectPath);
-      router.refresh();
     } catch {
       setError("Terjadi kesalahan. Coba lagi.");
-    } finally {
       setIsLoading(false);
     }
   }
