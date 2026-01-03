@@ -62,8 +62,17 @@ export default function OperatorTagihanPage() {
   const [nominal, setNominal] = useState("");
   const [deadline, setDeadline] = useState("");
 
+  // Real-time polling: fetch every 5 seconds
   useEffect(() => {
     fetchTagihan();
+
+    // Set up polling interval for real-time updates
+    const pollInterval = setInterval(() => {
+      fetchTagihan();
+    }, 5000); // 5 seconds - adjust as needed (lower = more real-time, higher = less server load)
+
+    // Cleanup on unmount
+    return () => clearInterval(pollInterval);
   }, []);
 
   async function fetchTagihan() {

@@ -23,7 +23,7 @@ interface StudentData {
   nim: string;
   name: string;
   prodi: string;
-  angkatan: string;
+  angkatan: string | number; // Update interface agar menerima number juga dari JSON
 }
 
 async function main() {
@@ -60,7 +60,7 @@ async function main() {
     try {
       // Check if NIM already exists
       const existing = await prisma.user.findUnique({
-        where: { identifier: student.nim },
+        where: { identifier: student.nim.toString() }, // Ensure NIM is string too
       });
 
       if (existing) {
@@ -74,20 +74,23 @@ async function main() {
       // Insert new student
       await prisma.user.create({
         data: {
-          identifier: student.nim,
+          identifier: student.nim.toString(),
           name: student.name,
           passwordHash: passwordHash,
           role: "USER",
           prodi: student.prodi,
-          angkatan: student.angkatan,
+          // --- PERBAIKAN DI SINI ---
+          // Memaksa konversi ke String agar sesuai schema Prisma
+          angkatan: student.angkatan.toString(),
+          // -----------------------
           isActive: true,
-          mustChangePassword: false, // Set to true if you want to force password change
+          mustChangePassword: false,
         },
       });
 
       // Create initial balance (0)
       const newUser = await prisma.user.findUnique({
-        where: { identifier: student.nim },
+        where: { identifier: student.nim.toString() },
       });
 
       if (newUser) {

@@ -1,62 +1,224 @@
 [
   {
-    "nim": "25120099",
-    "name": "Budi Santoso",
+    "nim": "25120005",
+    "name": "Faiq Fanani",
     "prodi": "SISTEM INFORMASI",
-    "angkatan": "2025"
+    "angkatan": 2025
   },
   {
-    "nim": "25120100",
-    "name": "Siti Aminah",
-    "prodi": "TEKNIK INFORMATIKA",
-    "angkatan": "2025"
-  },
-  {
-    "nim": "25120101",
-    "name": "Ahmad Rizki",
+    "nim": "25120006",
+    "name": "Muhammad Khaidar",
     "prodi": "SISTEM INFORMASI",
-    "angkatan": "2025"
+    "angkatan": 2025
   },
   {
-    "nim": "25120102",
-    "name": "Dewi Lestari",
-    "prodi": "TEKNIK INFORMATIKA",
-    "angkatan": "2025"
-  },
-  {
-    "nim": "25120103",
-    "name": "Fajar Nugroho",
+    "nim": "25120007",
+    "name": "Muhammad Syarif Hayat",
     "prodi": "SISTEM INFORMASI",
-    "angkatan": "2025"
+    "angkatan": 2025
   },
   {
-    "nim": "25120104",
-    "name": "Putri Wulandari",
-    "prodi": "MANAJEMEN INFORMATIKA",
-    "angkatan": "2025"
-  },
-  {
-    "nim": "25120105",
-    "name": "Andi Wijaya",
-    "prodi": "TEKNIK INFORMATIKA",
-    "angkatan": "2025"
-  },
-  {
-    "nim": "25120106",
-    "name": "Rina Susanti",
+    "nim": "25120008",
+    "name": "Joannatan Firdaus",
     "prodi": "SISTEM INFORMASI",
-    "angkatan": "2025"
+    "angkatan": 2025
   },
   {
-    "nim": "25120107",
-    "name": "Bambang Suryanto",
-    "prodi": "MANAJEMEN INFORMATIKA",
-    "angkatan": "2025"
+    "nim": "25120009",
+    "name": "Muhammad Sabi Nuam",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
   },
   {
-    "nim": "25120108",
-    "name": "Maya Anggraini",
-    "prodi": "TEKNIK INFORMATIKA",
-    "angkatan": "2025"
+    "nim": "25120010",
+    "name": "Siti Nur Dhiyanah",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120011",
+    "name": "Irfan Rifki",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120012",
+    "name": "Rizqi Amal Firdausy",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120013",
+    "name": "Intan Nur Sholehah",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120014",
+    "name": "Dhafin Epand Dhia Azka",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120015",
+    "name": "Moh. Fahrur Rozi",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120016",
+    "name": "Michael Tajuddin Panotogomo",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120017",
+    "name": "Ailsa Atikah Azaria",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120018",
+    "name": "Roisul Iman",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120019",
+    "name": "Mohammad Romli",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120020",
+    "name": "Resta Aida",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120021",
+    "name": "Resti Aini",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120022",
+    "name": "Kalam Akbar Al-haqqi",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120023",
+    "name": "Mohammad Zaqi Muharor",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120024",
+    "name": "Khumaidi Abdillah",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120025",
+    "name": "Ahmad Yardan Alim Al-haidi",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120030",
+    "name": "Ahmad Zaki Zamzami",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120032",
+    "name": "Ikki Nur Hikmaria",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120035",
+    "name": "M. Nafis Alfarisy",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120036",
+    "name": "Misliana",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120038",
+    "name": "Raditya Khesya Al Ghifaro",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120039",
+    "name": "Diky Septyan Hidayat",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120043",
+    "name": "Moch Naufal Waliyyudin Ramadhan",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120046",
+    "name": "Muhammad Ubaidillah Muharom",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120048",
+    "name": "Allan Rahman Ubaedillah",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120050",
+    "name": "Faizatul Siti Nur Azizah Finanda Putri",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120053",
+    "name": "Fransiscus Falentino Govers",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120055",
+    "name": "Rubiatul Adwia Ansar",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120060",
+    "name": "Putri Cathy Alya Zhavirah",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120062",
+    "name": "Riski Ramadani",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120071",
+    "name": "Mahathir Muhammad Munir",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
+  },
+  {
+    "nim": "25120081",
+    "name": "Lia Setiawati",
+    "prodi": "SISTEM INFORMASI",
+    "angkatan": 2025
   }
 ]
