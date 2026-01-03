@@ -534,3 +534,39 @@ h6 {
     padding: 0.625rem 0.75rem;
   }
 }
+
+/* ============================================
+   Sidebar Styles
+   ============================================ */
+.sidebar {
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-primary);
+}
+
+.dark .sidebar {
+  background: #111827; /* gray-900 */
+  border-right-color: #374151; /* gray-700 */
+}
+
+/* ============================================
+   Dark Mode Containers & Overrides
+   ============================================ */
+.dark .card {
+  background: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+}
+
+.dark .stats-card {
+  background: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+}
+
+.dark .input {
+  background: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+  color: #f3f4f6; /* gray-100 */
+}
+
+.dark .input::placeholder {
+  color: #6b7280; /* gray-500 */
+}

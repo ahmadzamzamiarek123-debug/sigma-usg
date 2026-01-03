@@ -25,6 +25,14 @@ interface Tagihan {
   createdAt: string;
 }
 
+interface StudentPayment {
+  id: string;
+  identifier: string;
+  name: string;
+  hasPaid: boolean;
+  paidAt: string | null;
+}
+
 export default function OperatorTagihanPage() {
   const { data: session } = useSession();
   const [tagihan, setTagihan] = useState<Tagihan[]>([]);
@@ -40,6 +48,12 @@ export default function OperatorTagihanPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Detail modal state
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailTagihan, setDetailTagihan] = useState<Tagihan | null>(null);
+  const [students, setStudents] = useState<StudentPayment[]>([]);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -88,6 +102,27 @@ export default function OperatorTagihanPage() {
     } finally {
       setIsDeleting(false);
     }
+  }
+
+  async function fetchTagihanDetail(tagihanId: string) {
+    setIsLoadingDetail(true);
+    try {
+      const res = await fetch(`/api/tagihan/${tagihanId}/detail`);
+      const data = await res.json();
+      if (data.success) {
+        setStudents(data.data.students || []);
+      }
+    } catch (error) {
+      console.error("Error fetching detail:", error);
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  }
+
+  function openDetailModal(t: Tagihan) {
+    setDetailTagihan(t);
+    setShowDetailModal(true);
+    fetchTagihanDetail(t.id);
   }
 
   function resetForm() {
@@ -228,7 +263,11 @@ export default function OperatorTagihanPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tagihan.map((t) => (
-            <Card key={t.id} className="hover:shadow-xl transition-all">
+            <Card
+              key={t.id}
+              className="hover:shadow-xl transition-all cursor-pointer"
+              onClick={() => openDetailModal(t)}
+            >
               <CardContent className="py-5">
                 <div className="flex items-start justify-between mb-3">
                   <span
@@ -242,18 +281,20 @@ export default function OperatorTagihanPage() {
                     {t.isActive ? "Aktif" : "Nonaktif"}
                   </Badge>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{t.title}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  {t.title}
+                </h3>
                 {t.description && (
-                  <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                     {t.description}
                   </p>
                 )}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xl font-bold text-indigo-600">
+                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
                     {formatRupiah(t.nominal)}
                   </span>
                 </div>
-                <div className="space-y-1 text-sm text-gray-500">
+                <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
                   <p>Target: {t.angkatanTarget || "Semua angkatan"}</p>
                   <p>Deadline: {formatDate(t.deadline)}</p>
                 </div>
@@ -266,17 +307,31 @@ export default function OperatorTagihanPage() {
                       {t.paidCount} orang
                     </span>
                   </div>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedTagihan(t);
-                      setShowDeleteModal(true);
-                    }}
-                  >
-                    Hapus Tagihan
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDetailModal(t);
+                      }}
+                    >
+                      Lihat Detail
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      className="flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTagihan(t);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -400,7 +455,131 @@ export default function OperatorTagihanPage() {
                 isLoading={isDeleting}
                 className="flex-1"
               >
-                Ya, Hapus
+                Ya, Hapus Permanen
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Detail Modal - Student Payment Tracking */}
+      <Modal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setDetailTagihan(null);
+          setStudents([]);
+        }}
+        title={detailTagihan?.title || "Detail Tagihan"}
+        size="lg"
+      >
+        {detailTagihan && (
+          <div className="space-y-4">
+            {/* Tagihan Info */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Nominal
+                </p>
+                <p className="font-semibold text-indigo-600 dark:text-indigo-400">
+                  {formatRupiah(detailTagihan.nominal)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Deadline
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {formatDate(detailTagihan.deadline)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Target
+                </p>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {detailTagihan.prodiTarget || "Semua"} -{" "}
+                  {detailTagihan.angkatanTarget || "Semua"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Progress
+                </p>
+                <p className="font-semibold text-green-600">
+                  {students.filter((s) => s.hasPaid).length} / {students.length}{" "}
+                  Bayar
+                </p>
+              </div>
+            </div>
+
+            {/* Student List */}
+            <div className="border dark:border-gray-700 rounded-xl overflow-hidden">
+              <div className="max-h-64 overflow-y-auto">
+                {isLoadingDetail ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2">
+                      Memuat data...
+                    </p>
+                  </div>
+                ) : students.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    Tidak ada mahasiswa dalam target
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
+                          NIM
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
+                          Nama
+                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
+                          Status
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                      {students.map((student) => (
+                        <tr
+                          key={student.id}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                        >
+                          <td className="px-4 py-2 text-sm font-mono text-gray-900 dark:text-gray-100">
+                            {student.identifier}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            {student.name}
+                          </td>
+                          <td className="px-4 py-2">
+                            <Badge
+                              variant={student.hasPaid ? "success" : "danger"}
+                            >
+                              {student.hasPaid ? "Lunas" : "Belum"}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setDetailTagihan(null);
+                  setStudents([]);
+                }}
+                className="flex-1"
+              >
+                Tutup
               </Button>
             </div>
           </div>

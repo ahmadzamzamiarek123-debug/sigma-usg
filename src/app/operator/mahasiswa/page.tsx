@@ -13,7 +13,6 @@ interface User {
   angkatan: string | null;
   isActive: boolean;
   balance: { balance: number } | null;
-  hasPaidThisWeek: boolean;
 }
 
 export default function OperatorMahasiswaPage() {
@@ -68,8 +67,8 @@ export default function OperatorMahasiswaPage() {
         />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      {/* Stats - Only Total and Active */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="stats-card">
           <p className="text-sm text-[var(--text-muted)]">Total Mahasiswa</p>
           <p className="stats-card-value">{users.length}</p>
@@ -80,23 +79,9 @@ export default function OperatorMahasiswaPage() {
             {users.filter((u) => u.isActive).length}
           </p>
         </div>
-        <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">
-            Sudah Bayar Minggu Ini
-          </p>
-          <p className="stats-card-value text-[var(--color-success)]">
-            {users.filter((u) => u.hasPaidThisWeek).length}
-          </p>
-        </div>
-        <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">Belum Bayar</p>
-          <p className="stats-card-value text-[var(--color-danger)]">
-            {users.filter((u) => !u.hasPaidThisWeek).length}
-          </p>
-        </div>
       </div>
 
-      {/* Table */}
+      {/* Table - No payment status column */}
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table">
@@ -112,7 +97,7 @@ export default function OperatorMahasiswaPage() {
                   Saldo
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase">
-                  Status Minggu Ini
+                  Status
                 </th>
               </tr>
             </thead>
@@ -140,15 +125,12 @@ export default function OperatorMahasiswaPage() {
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-[var(--bg-hover)]">
-                    <td className="px-4 py-3 font-mono text-sm">
+                    <td className="px-4 py-3 font-mono text-sm text-[var(--text-primary)]">
                       {user.identifier}
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-[var(--text-primary)]">
                         {user.name}
-                      </p>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {user.isActive ? "Aktif" : "Nonaktif"}
                       </p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-[var(--usg-accent)]">
@@ -157,12 +139,10 @@ export default function OperatorMahasiswaPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`badge ${
-                          user.hasPaidThisWeek
-                            ? "badge-success"
-                            : "badge-danger"
+                          user.isActive ? "badge-success" : "badge-danger"
                         }`}
                       >
-                        {user.hasPaidThisWeek ? "Sudah Bayar" : "Belum Bayar"}
+                        {user.isActive ? "Aktif" : "Nonaktif"}
                       </span>
                     </td>
                   </tr>
