@@ -1,49 +1,47 @@
-// Chart Colors - Konsisten di seluruh dashboard
+// Chart color utilities and constants
 
 export const ChartColors = {
-  // Transaction Types
-  topup: "#FFD700",       // Kuning
-  payment: "#FF4D4D",     // Merah
-  transfer_out: "#A855F7", // Ungu
-  transfer_in: "#3B82F6",  // Biru
+  chartGrid: "#374151", // gray-700
+  chartLine: "#818CF8", // indigo-400
+  chartArea: "rgba(129, 140, 248, 0.2)",
+  success: "#10B981",
+  warning: "#F59E0B",
+  danger: "#EF4444",
+  info: "#3B82F6",
+  active: "#10B981", // green for active status
+  inactive: "#6B7280", // gray for inactive status
+};
 
-  // Prodi Colors
-  TI: "#FACC15",    // Kuning
-  SI: "#3B82F6",    // Biru
-  MI: "#10B981",    // Hijau
-  Agro: "#EF4444",  // Merah
-  Hukum: "#6366F1", // Indigo
-  Ekonomi: "#14B8A6", // Teal
-  default: "#8B5CF6", // Ungu
+// Prodi-specific colors for charts
+const PRODI_COLORS: Record<string, string> = {
+  "SISTEM INFORMASI": "#6366F1", // indigo
+  "TEKNIK INFORMATIKA": "#10B981", // emerald
+  "MANAJEMEN INFORMATIKA": "#F59E0B", // amber
+  AKUNTANSI: "#EC4899", // pink
+  MANAJEMEN: "#8B5CF6", // violet
+  HUKUM: "#14B8A6", // teal
+  PENDIDIKAN: "#F97316", // orange
+};
 
-  // Status Colors
-  active: "#22C55E",   // Hijau
-  inactive: "#EF4444", // Merah
-  pending: "#F59E0B",  // Kuning
-
-  // Chart Background
-  chartBg: "#1F2937",
-  chartGrid: "#374151",
-} as const
-
-export const TransactionTypeLabels: Record<string, string> = {
-  TOPUP: "Top-up",
-  PAYMENT: "Bayar Tagihan",
-  TRANSFER_OUT: "Transfer Keluar",
-  TRANSFER_IN: "Transfer Masuk",
-}
+// Default colors for unknown prodi
+const DEFAULT_COLORS = [
+  "#6366F1",
+  "#10B981",
+  "#F59E0B",
+  "#EC4899",
+  "#8B5CF6",
+  "#14B8A6",
+  "#F97316",
+  "#EF4444",
+];
 
 export function getProdiColor(prodi: string): string {
-  const colors = ChartColors as Record<string, string>
-  return colors[prodi] || ChartColors.default
-}
-
-export function getTransactionColor(type: string): string {
-  const typeMap: Record<string, string> = {
-    TOPUP: ChartColors.topup,
-    PAYMENT: ChartColors.payment,
-    TRANSFER_OUT: ChartColors.transfer_out,
-    TRANSFER_IN: ChartColors.transfer_in,
+  if (PRODI_COLORS[prodi]) {
+    return PRODI_COLORS[prodi];
   }
-  return typeMap[type] || ChartColors.default
+  // Generate consistent color for unknown prodi
+  const hash = prodi
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return DEFAULT_COLORS[hash % DEFAULT_COLORS.length];
 }

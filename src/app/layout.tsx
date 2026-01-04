@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fintech Kampus - Sistem Keuangan Internal",
-  description: "Sistem fintech internal kampus untuk pembayaran kas, iuran acara, dan transfer antar mahasiswa",
+  title: "SIGMA",
+  description: "Sistem Informasi Keuangan Mahasiswa",
 };
 
 export default function RootLayout({
@@ -20,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body className={`${inter.variable} font-sans antialiased bg-gray-50 text-gray-900`}>
+      <body
+        className={`${inter.variable} font-sans antialiased bg-gray-50 text-gray-900`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
