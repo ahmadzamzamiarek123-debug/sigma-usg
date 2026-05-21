@@ -50,6 +50,17 @@ export default function PengeluaranPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    
+    const numericAmount = Number(amount);
+    if(numericAmount <= 0) {
+      setResult({ success: false, message: 'Nominal harus lebih dari 0' })
+      return;
+    }
+    if(numericAmount > currentBalance) {
+      setResult({ success: false, message: 'Saldo tidak mencukupi' })
+      return;
+    }
+
     setIsSubmitting(true)
     setResult(null)
 
@@ -58,7 +69,7 @@ export default function PengeluaranPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: Number(amount),
+          amount: numericAmount,
           description,
         }),
       })
@@ -84,9 +95,9 @@ export default function PengeluaranPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+        <div className="space-y-6">
+          <div className="skeleton h-8 w-1/3"></div>
+          <div className="skeleton h-32 w-full"></div>
         </div>
       </DashboardLayout>
     )
@@ -94,11 +105,10 @@ export default function PengeluaranPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pengeluaran Prodi</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Pengeluaran Prodi</h1>
+          <p className="text-[var(--text-secondary)] mt-1">
             Catat pengeluaran untuk prodi {session?.user?.prodi}
           </p>
         </div>
@@ -110,7 +120,6 @@ export default function PengeluaranPage() {
         </Button>
       </div>
 
-      {/* Balance Card */}
       <div className="mb-8">
         <StatsCardGradient
           title="Saldo Prodi Tersedia"
@@ -119,48 +128,46 @@ export default function PengeluaranPage() {
         />
       </div>
 
-      {/* Result Message */}
       {result && (
-        <div className={`mb-6 p-4 rounded-xl ${result.success ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'}`}>
+        <div className={`mb-6 p-4 rounded-xl ${result.success ? 'alert-success' : 'alert-danger'}`}>
           {result.message}
         </div>
       )}
 
-      {/* Pengeluaran List */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Riwayat Pengeluaran</h2>
+      <div className="table-wrapper">
+        <div className="px-6 py-4 border-b border-[var(--border-primary)]">
+          <h2 className="font-semibold text-[var(--text-primary)]">Riwayat Pengeluaran</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tanggal</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Keterangan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Dicatat Oleh</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jumlah</th>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+                <th>Dicatat Oleh</th>
+                <th>Jumlah</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody>
               {pengeluaran.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={4} className="px-6 py-12 text-center text-[var(--text-muted)]">
                     Belum ada pengeluaran tercatat
                   </td>
                 </tr>
               ) : (
                 pengeluaran.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <tr key={p.id}>
+                    <td className="text-[var(--text-secondary)]">
                       {formatDateTime(p.createdAt)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                    <td className="text-[var(--text-primary)]">
                       {p.description}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                    <td className="text-[var(--text-secondary)]">
                       {p.createdBy.name}
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-red-600 dark:text-red-400">
+                    <td className="font-semibold text-[var(--color-danger)]">
                       -{formatRupiah(p.amount)}
                     </td>
                   </tr>
@@ -169,13 +176,12 @@ export default function PengeluaranPage() {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
 
-      {/* Create Modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Catat Pengeluaran Baru">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl mb-4">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="p-4 bg-[var(--color-info-light)] rounded-xl mb-4">
+            <p className="text-sm text-[var(--color-info)]">
               <span className="font-medium">Saldo tersedia:</span> {formatRupiah(currentBalance)}
             </p>
           </div>
@@ -187,6 +193,8 @@ export default function PengeluaranPage() {
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Contoh: 500000"
             required
+            min="1"
+            max={currentBalance}
           />
 
           <Textarea

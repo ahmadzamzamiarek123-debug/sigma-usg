@@ -100,6 +100,7 @@ export type UpdateTagihanInput = z.infer<typeof updateTagihanSchema>;
 export const createOperatorSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter"),
   prodi: z.string().min(2, "Prodi harus diisi"),
+  angkatan: z.string().min(4, "Angkatan harus diisi (contoh: 2024)"),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 

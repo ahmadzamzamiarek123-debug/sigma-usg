@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: "NIM minimal 4 karakter",
-      });
+      }, { status: 400 });
     }
 
     // Find user by NIM (identifier for USER role)
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: "NIM tidak ditemukan",
-      });
+      }, { status: 404 });
     }
 
     return NextResponse.json({

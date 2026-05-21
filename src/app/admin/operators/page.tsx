@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { formatDateTime } from "@/lib/utils";
-import { ChartColors } from "@/lib/colors";
 import { PRODI_OPTIONS, ANGKATAN_OPTIONS } from "@/lib/constants";
 
 interface Operator {
@@ -26,6 +25,7 @@ export default function AdminOperatorsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [resetId, setResetId] = useState<string | null>(null);
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
@@ -36,6 +36,7 @@ export default function AdminOperatorsPage() {
   const [prodi, setProdi] = useState("");
   const [angkatan, setAngkatan] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     fetchOperators();
@@ -58,10 +59,16 @@ export default function AdminOperatorsPage() {
     setProdi("");
     setAngkatan("");
     setPassword("");
+    setPasswordError("");
   }
 
   async function handleCreateOperator(e: React.FormEvent) {
     e.preventDefault();
+    if (password.length < 6) {
+      setPasswordError("Password minimal 6 karakter");
+      return;
+    }
+    setPasswordError("");
     setIsSubmitting(true);
     setResult(null);
 
@@ -92,13 +99,14 @@ export default function AdminOperatorsPage() {
     }
   }
 
-  async function handleToggleActive(operatorId: string) {
-    setTogglingId(operatorId);
+  async function handleToggleActive() {
+    if (!togglingId) return;
+    setIsSubmitting(true);
     setResult(null);
 
     try {
       const res = await fetch(
-        `/api/admin/operators/${operatorId}/toggle-active`,
+        `/api/admin/operators/${togglingId}/toggle-active`,
         {
           method: "PATCH",
         }
@@ -116,24 +124,45 @@ export default function AdminOperatorsPage() {
       setResult({ success: false, message: "Terjadi kesalahan" });
     } finally {
       setTogglingId(null);
+      setIsSubmitting(false);
     }
   }
 
-  const prodiColors: Record<string, string> = {
-    TI: "bg-blue-100 text-blue-700",
-    SI: "bg-green-100 text-green-700",
-    MI: "bg-purple-100 text-purple-700",
-  };
+  async function handleResetPassword() {
+    if (!resetId) return;
+    setIsSubmitting(true);
+    setResult(null);
+
+    try {
+      const res = await fetch(`/api/admin/operators/${resetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset-password" }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setResult({ success: true, message: data.message });
+      } else {
+        setResult({ success: false, message: data.error });
+      }
+    } catch {
+      setResult({ success: false, message: "Terjadi kesalahan" });
+    } finally {
+      setResetId(null);
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-8">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text-primary)]">
             Kelola Operator
           </h1>
-          <p className="text-gray-500 text-xs sm:text-sm mt-1">
+          <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-1">
             Tambah dan kelola operator
           </p>
         </div>
@@ -147,150 +176,133 @@ export default function AdminOperatorsPage() {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Tambah Operator
         </Button>
       </div>
 
-      {/* Result Message */}
       {result && (
-        <div
-          className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm ${
-            result.success
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
+        <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg sm:rounded-xl text-sm ${result.success ? "alert-success" : "alert-danger"}`}>
           {result.message}
         </div>
       )}
 
-      {/* Operators Grid - Responsive */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-40 sm:h-48 bg-gray-200 rounded-xl sm:rounded-2xl animate-pulse"
-            ></div>
+            <div key={i} className="h-40 sm:h-48 skeleton"></div>
           ))}
         </div>
       ) : operators.length === 0 ? (
         <Card>
           <CardContent className="py-8 sm:py-12 text-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg
-                className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <p className="text-gray-500 text-sm sm:text-base">
-              Belum ada operator
-            </p>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="mt-3 sm:mt-4"
-            >
-              Tambah Operator
-            </Button>
+            <p className="text-[var(--text-secondary)] text-sm sm:text-base">Belum ada operator</p>
+            <Button onClick={() => setShowCreateModal(true)} className="mt-3 sm:mt-4">Tambah Operator</Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {operators.map((op) => (
-            <Card key={op.id} className="hover:shadow-xl transition-all">
+            <Card key={op.id}>
               <CardContent className="p-4 sm:py-5">
                 <div className="flex items-start gap-3 mb-3 sm:mb-4">
-                  <div
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg flex-shrink-0"
-                    style={{
-                      background: op.isActive
-                        ? "linear-gradient(to bottom right, #10B981, #14B8A6)"
-                        : "linear-gradient(to bottom right, #6B7280, #9CA3AF)",
-                    }}
-                  >
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg flex-shrink-0 ${op.isActive ? 'bg-[var(--color-success)]' : 'bg-[var(--text-muted)]'}`}>
                     {op.name[0]?.toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                    <h3 className="font-semibold text-[var(--text-primary)] text-sm sm:text-base truncate">
                       {op.name}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-500 font-mono truncate">
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-mono truncate">
                       {op.identifier}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between mb-2 sm:mb-3 flex-wrap gap-2">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      prodiColors[op.prodi || ""] || "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {op.prodi || "N/A"}
-                  </span>
-
-                  {/* Status Badge */}
-                  <span
-                    className="px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: op.isActive
-                        ? `${ChartColors.active}20`
-                        : `${ChartColors.inactive}20`,
-                      color: op.isActive
-                        ? ChartColors.active
-                        : ChartColors.inactive,
-                    }}
-                  >
+                  <span className="badge badge-info">{op.prodi || "N/A"}</span>
+                  <span className={`badge ${op.isActive ? 'badge-success' : 'badge-default'}`}>
                     {op.isActive ? "Aktif" : "Nonaktif"}
                   </span>
                 </div>
 
-                <p className="text-xs text-gray-400 mb-3 sm:mb-4">
+                <p className="text-xs text-[var(--text-muted)] mb-3 sm:mb-4">
                   {formatDateTime(op.createdAt)}
                 </p>
 
-                {/* Toggle Button */}
-                <Button
-                  variant={op.isActive ? "danger" : "primary"}
-                  size="sm"
-                  className="w-full text-xs sm:text-sm"
-                  onClick={() => handleToggleActive(op.id)}
-                  isLoading={togglingId === op.id}
-                >
-                  {op.isActive ? "Nonaktifkan" : "Aktifkan"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant={op.isActive ? "danger" : "primary"}
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => setTogglingId(op.id)}
+                  >
+                    {op.isActive ? "Disable" : "Enable"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => setResetId(op.id)}
+                  >
+                    Reset PW
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
+      {/* Confirmation Modal Status */}
+      <Modal
+        isOpen={!!togglingId}
+        onClose={() => setTogglingId(null)}
+        title="Konfirmasi Status Operator"
+      >
+        <p className="text-[var(--text-secondary)] mb-4">
+          Apakah Anda yakin ingin mengubah status operator ini?
+        </p>
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={() => setTogglingId(null)} className="flex-1">Batal</Button>
+          <Button onClick={handleToggleActive} isLoading={isSubmitting} className="flex-1">Ya, Lanjutkan</Button>
+        </div>
+      </Modal>
+
+      {/* Confirmation Modal Reset PW */}
+      <Modal
+        isOpen={!!resetId}
+        onClose={() => setResetId(null)}
+        title="Reset Password Operator"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--text-secondary)]">
+            Apakah Anda yakin ingin meriset password operator ini ke password default?
+          </p>
+          <div className="p-3 bg-[var(--bg-tertiary)] rounded-lg">
+            <p className="text-sm text-[var(--text-primary)]">
+              Password baru: <span className="font-mono font-bold">password123</span>
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={() => setResetId(null)} className="flex-1">Batal</Button>
+            <Button onClick={handleResetPassword} isLoading={isSubmitting} className="flex-1">Ya, Riset</Button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {setShowCreateModal(false); resetForm();}}
         title="Tambah Operator"
       >
-        <form
-          onSubmit={handleCreateOperator}
-          className="space-y-3 sm:space-y-4"
-        >
+        <form onSubmit={handleCreateOperator} className="space-y-3 sm:space-y-4">
           <Input
             label="Nama Operator"
             value={name}
@@ -312,10 +324,7 @@ export default function AdminOperatorsPage() {
               label="Angkatan"
               value={angkatan}
               onChange={(e) => setAngkatan(e.target.value)}
-              options={[
-                { value: "", label: "Pilih Tahun" },
-                ...ANGKATAN_OPTIONS,
-              ]}
+              options={[{ value: "", label: "Pilih Tahun" }, ...ANGKATAN_OPTIONS]}
               required
             />
           </div>
@@ -324,27 +333,24 @@ export default function AdminOperatorsPage() {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {setPassword(e.target.value); setPasswordError("");}}
             placeholder="Minimal 6 karakter"
+            error={passwordError}
             required
           />
 
-          <p className="text-xs text-gray-500">Format kode: OP-[PRODI]-XXXX</p>
+          <p className="text-xs text-[var(--text-muted)]">Format kode: OP-[PRODI]-XXXX</p>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
             <Button
               type="button"
               variant="secondary"
-              onClick={() => setShowCreateModal(false)}
+              onClick={() => {setShowCreateModal(false); resetForm();}}
               className="w-full sm:flex-1 order-2 sm:order-1"
             >
               Batal
             </Button>
-            <Button
-              type="submit"
-              isLoading={isSubmitting}
-              className="w-full sm:flex-1 order-1 sm:order-2"
-            >
+            <Button type="submit" isLoading={isSubmitting} className="w-full sm:flex-1 order-1 sm:order-2">
               Buat Operator
             </Button>
           </div>

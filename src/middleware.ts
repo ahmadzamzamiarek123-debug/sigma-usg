@@ -20,8 +20,7 @@ export async function middleware(request: NextRequest) {
   // Get JWT token
   const token = await getToken({
     req: request,
-    secret:
-      process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
+    secret: process.env.NEXTAUTH_SECRET,
   });
 
   const isAuthenticated = !!token;

@@ -47,25 +47,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, prodi, angkatan, password } = body;
-
-    // Validate required fields
-    if (!name || !prodi || !angkatan || !password) {
+    
+    const validation = createOperatorSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Semua field wajib diisi (nama, prodi, angkatan, password)",
-        },
+        { success: false, error: validation.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { success: false, error: "Password minimal 6 karakter" },
-        { status: 400 }
-      );
-    }
+    const { name, prodi, angkatan, password } = validation.data;
 
     // Check if prodi+angkatan already has an operator
     const existingOperator = await prisma.user.findFirst({

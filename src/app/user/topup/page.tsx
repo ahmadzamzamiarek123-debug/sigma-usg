@@ -64,6 +64,12 @@ export default function UserTopupPage() {
       setIsSubmitting(false);
       return;
     }
+    
+    if (amount > 10000000) {
+      setResult({ success: false, message: "Jumlah maksimal Rp 10.000.000" });
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/user/topup", {
@@ -107,7 +113,6 @@ export default function UserTopupPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
           Top-up Saldo
@@ -117,16 +122,14 @@ export default function UserTopupPage() {
         </p>
       </div>
 
-      {/* Current Balance */}
       <div className="stats-card mb-6">
-        <p className="text-sm text-[var(--text-muted)]">Saldo Saat Ini</p>
+        <p className="stats-card-label">Saldo Saat Ini</p>
         <p className="stats-card-value text-[var(--usg-accent)]">
           {formatRupiah(balance)}
         </p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Request Form */}
         <div className="card">
           <div className="card-body">
             <h3 className="font-semibold text-[var(--text-primary)] mb-4">
@@ -137,8 +140,8 @@ export default function UserTopupPage() {
               <div
                 className={`mb-4 p-3 rounded-lg text-sm ${
                   result.success
-                    ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-                    : "bg-[var(--color-danger-light)] text-[var(--color-danger)]"
+                    ? "alert-success"
+                    : "alert-danger"
                 }`}
               >
                 {result.message}
@@ -146,7 +149,6 @@ export default function UserTopupPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Quick Amount Buttons */}
               <div>
                 <label className="input-label">Pilih Nominal</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -170,7 +172,6 @@ export default function UserTopupPage() {
                 </div>
               </div>
 
-              {/* Custom Amount */}
               <div>
                 <label className="input-label">Atau Nominal Lainnya</label>
                 <input
@@ -180,9 +181,10 @@ export default function UserTopupPage() {
                     setCustomAmount(e.target.value);
                     setSelectedAmount(0);
                   }}
-                  placeholder="Minimal Rp 10.000"
+                  placeholder="Minimal Rp 10.000, Maksimal Rp 10.000.000"
                   className="input"
                   min="10000"
+                  max="10000000"
                 />
               </div>
 
@@ -204,7 +206,6 @@ export default function UserTopupPage() {
           </div>
         </div>
 
-        {/* Request History */}
         <div className="card">
           <div className="card-body">
             <h3 className="font-semibold text-[var(--text-primary)] mb-4">

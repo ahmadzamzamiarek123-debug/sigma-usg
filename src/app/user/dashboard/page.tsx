@@ -44,7 +44,7 @@ export default function UserDashboard() {
   const [prodiSaldo, setProdiSaldo] = useState<ProdiSaldo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Real-time polling: fetch every 3 seconds for live updates
+  // Real-time polling: fetch every 30 seconds
   useEffect(() => {
     async function fetchData() {
       try {
@@ -76,8 +76,7 @@ export default function UserDashboard() {
     if (session?.user) {
       fetchData();
 
-      // Set up polling interval for real-time balance updates
-      const pollInterval = setInterval(fetchData, 3000); // 3 seconds
+      const pollInterval = setInterval(fetchData, 30000); // 30 seconds
 
       return () => clearInterval(pollInterval);
     }
@@ -87,13 +86,10 @@ export default function UserDashboard() {
     return (
       <DashboardLayout>
         <div className="space-y-4">
-          <div className="h-8 bg-[var(--bg-tertiary)] rounded w-1/3 animate-pulse"></div>
+          <div className="skeleton h-8 w-1/3"></div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-24 bg-[var(--bg-tertiary)] rounded animate-pulse"
-              ></div>
+              <div key={i} className="skeleton h-24 w-full"></div>
             ))}
           </div>
         </div>
@@ -103,7 +99,6 @@ export default function UserDashboard() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
           Selamat datang, {session?.user?.name?.split(" ")[0]}
@@ -113,36 +108,31 @@ export default function UserDashboard() {
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        {/* Saldo */}
         <div className="stats-card col-span-2 sm:col-span-1">
-          <p className="text-sm text-[var(--text-muted)]">Saldo Anda</p>
+          <p className="stats-card-label">Saldo Anda</p>
           <p className="stats-card-value text-[var(--usg-accent)]">
             {formatRupiah(balance)}
           </p>
         </div>
 
-        {/* Top-up */}
         <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">Total Top-up</p>
+          <p className="stats-card-label">Total Top-up</p>
           <p className="stats-card-value text-[var(--color-success)]">
             {formatRupiah(financeData?.totals.topup || 0)}
           </p>
         </div>
 
-        {/* Pembayaran */}
         <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">Total Bayar</p>
+          <p className="stats-card-label">Total Bayar</p>
           <p className="stats-card-value text-[var(--color-danger)]">
             {formatRupiah(financeData?.totals.payment || 0)}
           </p>
         </div>
 
-        {/* Saldo Prodi */}
         {prodiSaldo && (
           <div className="stats-card">
-            <p className="text-sm text-[var(--text-muted)]">Saldo Prodi</p>
+            <p className="stats-card-label">Saldo Prodi</p>
             <p className="stats-card-value">
               {formatRupiah(prodiSaldo.currentBalance)}
             </p>
@@ -150,7 +140,6 @@ export default function UserDashboard() {
         )}
       </div>
 
-      {/* Chart */}
       {financeData && financeData.chartData.length > 0 && (
         <div className="chart-container mb-6">
           <h3 className="chart-title">Statistik Keuangan 30 Hari Terakhir</h3>
@@ -170,6 +159,7 @@ export default function UserDashboard() {
                   tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                   stroke="var(--border-secondary)"
                   tickFormatter={(v) => `${v / 1000}k`}
+                  width={40}
                 />
                 <Tooltip
                   contentStyle={{
@@ -202,7 +192,6 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
       <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
         Aksi Cepat
       </h3>
@@ -210,9 +199,9 @@ export default function UserDashboard() {
         <Link href="/user/bayar">
           <div className="card hover:border-[var(--usg-primary)] transition-colors cursor-pointer">
             <div className="card-body flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[var(--usg-primary)] bg-opacity-10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-[rgba(30,58,95,0.1)] dark:bg-[rgba(30,58,95,0.3)] flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-[var(--usg-primary)]"
+                  className="w-5 h-5 text-[var(--usg-primary)] dark:text-[var(--usg-primary-light)]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -240,7 +229,7 @@ export default function UserDashboard() {
         <Link href="/user/transfer">
           <div className="card hover:border-[var(--usg-primary)] transition-colors cursor-pointer">
             <div className="card-body flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[var(--color-info)] bg-opacity-10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-[var(--color-info-light)] flex items-center justify-center">
                 <svg
                   className="w-5 h-5 text-[var(--color-info)]"
                   fill="none"
@@ -270,9 +259,9 @@ export default function UserDashboard() {
         <Link href="/user/saldo-prodi">
           <div className="card hover:border-[var(--usg-primary)] transition-colors cursor-pointer">
             <div className="card-body flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[var(--usg-accent)] bg-opacity-10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-[var(--color-accent-bg)] flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-[var(--usg-accent)]"
+                  className="w-5 h-5 text-[var(--usg-accent-hover)]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"

@@ -69,6 +69,8 @@ export async function POST(request: NextRequest) {
       where: {
         identifier: toNim,
         role: "USER",
+        isActive: true,
+        deletedAt: null,
       },
       include: { balance: true },
     });

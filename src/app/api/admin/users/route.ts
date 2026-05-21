@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
-    const hashedPin = await bcrypt.hash('123456', 10) // Default PIN
+    const hashedPin = await bcrypt.hash(process.env.DEFAULT_USER_PIN || '123456', 10) // Environment configurable PIN
 
     // Create user with balance
     const newUser = await prisma.user.create({
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
         passwordHash: hashedPassword,
         pinHash: hashedPin,
         role: 'USER',
+        mustChangePassword: true, // Force password change for security
         balance: {
           create: { balance: 0 },
         },
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Audit log
-    await createAuditLog(admin!.id, 'USER_STATUS_CHANGED', {
+    await createAuditLog(admin!.id, 'USER_CREATED', {
       targetUserId: newUser.id,
       targetUserName: newUser.name,
       description: `Created new user: ${newUser.identifier}`,

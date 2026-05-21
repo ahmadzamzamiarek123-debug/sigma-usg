@@ -41,36 +41,44 @@ export function AdminProdiChart({
     return value.toString()
   }
 
+  // Common styling to adapt to light/dark themes
+  const chartStyle = {
+    textColor: 'var(--text-secondary)',
+    tooltipBg: 'var(--bg-primary)',
+    tooltipColor: 'var(--text-primary)',
+    tooltipBorder: '1px solid var(--border-primary)',
+  }
+
   // Bar chart for current saldo per prodi
   if (type === 'bar' && saldoData.length > 0) {
     return (
-      <div className="w-full bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl overflow-hidden">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{title}</h3>
+      <div className="chart-container">
+        <h3 className="chart-title">{title}</h3>
         <div className="w-full h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={saldoData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={ChartColors.chartGrid} />
               <XAxis 
                 dataKey="prodi" 
-                stroke="#9CA3AF"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                stroke={chartStyle.textColor}
+                tick={{ fill: chartStyle.textColor, fontSize: 10 }}
                 tickMargin={8}
               />
               <YAxis 
-                stroke="#9CA3AF"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                stroke={chartStyle.textColor}
+                tick={{ fill: chartStyle.textColor, fontSize: 10 }}
                 tickFormatter={formatRupiah}
                 width={45}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: 'none',
+                  backgroundColor: chartStyle.tooltipBg,
+                  border: chartStyle.tooltipBorder,
                   borderRadius: '12px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-md)',
                   fontSize: '12px',
                 }}
-                labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
+                labelStyle={{ color: chartStyle.tooltipColor, fontWeight: 'bold' }}
                 formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, 'Saldo']}
               />
               <Bar dataKey="balance" radius={[6, 6, 0, 0]}>
@@ -88,33 +96,33 @@ export function AdminProdiChart({
   // Line chart for historical data
   if (type === 'line' && historyData.length > 0) {
     return (
-      <div className="w-full bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl overflow-hidden">
-        <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{title}</h3>
+      <div className="chart-container">
+        <h3 className="chart-title">{title}</h3>
         <div className="w-full h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={historyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={ChartColors.chartGrid} />
               <XAxis 
                 dataKey="month" 
-                stroke="#9CA3AF"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                stroke={chartStyle.textColor}
+                tick={{ fill: chartStyle.textColor, fontSize: 10 }}
                 tickMargin={8}
               />
               <YAxis 
-                stroke="#9CA3AF"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                stroke={chartStyle.textColor}
+                tick={{ fill: chartStyle.textColor, fontSize: 10 }}
                 tickFormatter={formatRupiah}
                 width={45}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1F2937',
-                  border: 'none',
+                  backgroundColor: chartStyle.tooltipBg,
+                  border: chartStyle.tooltipBorder,
                   borderRadius: '12px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                  boxShadow: 'var(--shadow-md)',
                   fontSize: '12px',
                 }}
-                labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
+                labelStyle={{ color: chartStyle.tooltipColor, fontWeight: 'bold' }}
                 formatter={(value: number, name: string) => [
                   `Rp ${value.toLocaleString('id-ID')}`,
                   name,
@@ -123,7 +131,7 @@ export function AdminProdiChart({
               <Legend
                 wrapperStyle={{ paddingTop: '16px', fontSize: '11px' }}
                 formatter={(value) => (
-                  <span className="text-gray-300 text-xs sm:text-sm">{value}</span>
+                  <span className="text-[var(--text-secondary)] text-xs sm:text-sm">{value}</span>
                 )}
               />
               {prodiList.map((prodi) => (
@@ -145,9 +153,9 @@ export function AdminProdiChart({
   }
 
   return (
-    <div className="w-full bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl overflow-hidden">
-      <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{title}</h3>
-      <div className="h-48 sm:h-64 flex items-center justify-center text-gray-400">
+    <div className="chart-container">
+      <h3 className="chart-title">{title}</h3>
+      <div className="h-48 sm:h-64 flex items-center justify-center text-[var(--text-muted)]">
         Tidak ada data tersedia
       </div>
     </div>

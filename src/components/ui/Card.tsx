@@ -11,20 +11,12 @@ export function Card({
   variant = "default",
   ...props
 }: CardProps) {
-  const variants = {
-    default:
-      "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700",
-    gradient:
-      "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white",
-    glass:
-      "bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border border-white/20 dark:border-slate-700/50",
-  };
-
   return (
     <div
       className={cn(
-        "w-full rounded-xl sm:rounded-2xl shadow-lg dark:shadow-slate-900/50 transition-all duration-300 hover:shadow-xl overflow-hidden",
-        variants[variant],
+        variant === "default" && "card",
+        variant === "gradient" && "bg-gradient-to-br from-[var(--usg-primary)] to-[var(--usg-primary-light)] text-[var(--text-inverse)] rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300",
+        variant === "glass" && "bg-[var(--bg-primary)]/80 backdrop-blur-lg border border-[var(--border-primary)]/50 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300",
         className
       )}
       {...props}
@@ -41,10 +33,7 @@ export function CardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 dark:border-slate-700",
-        className
-      )}
+      className={cn("card-header", className)}
       {...props}
     >
       {children}
@@ -59,10 +48,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn(
-        "text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100",
-        className
-      )}
+      className={cn("text-base sm:text-lg font-semibold text-[var(--text-primary)]", className)}
       {...props}
     >
       {children}
@@ -76,7 +62,7 @@ export function CardContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("px-4 py-3 sm:px-6 sm:py-4", className)} {...props}>
+    <div className={cn("card-body", className)} {...props}>
       {children}
     </div>
   );
@@ -90,7 +76,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50 rounded-b-xl sm:rounded-b-2xl",
+        "px-4 py-3 sm:px-6 sm:py-4 border-t border-[var(--border-primary)] bg-[var(--bg-tertiary)]/50 rounded-b-xl sm:rounded-b-2xl",
         className
       )}
       {...props}

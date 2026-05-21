@@ -16,28 +16,25 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon, trend, description, className }: StatsCardProps) {
   return (
-    <div className={cn(
-      'bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 transition-colors',
-      className
-    )}>
+    <div className={cn('stats-card', className)}>
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+          <p className="stats-card-label">{title}</p>
+          <p className="stats-card-value mt-1">{value}</p>
         </div>
         {icon && (
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <div className="w-12 h-12 rounded-xl bg-[var(--color-accent-bg)] flex items-center justify-center text-[var(--usg-accent-hover)]">
             {icon}
           </div>
         )}
       </div>
       
       {(trend || description) && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-4">
           {trend && (
             <span className={cn(
               'text-sm font-medium flex items-center gap-1',
-              trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              trend.isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
             )}>
               {trend.isPositive ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +49,7 @@ export function StatsCard({ title, value, icon, trend, description, className }:
             </span>
           )}
           {description && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">{description}</span>
+            <span className="text-sm text-[var(--text-muted)]">{description}</span>
           )}
         </div>
       )}
@@ -70,12 +67,15 @@ interface StatsCardGradientProps {
 export function StatsCardGradient({ title, value, subtitle, className }: StatsCardGradientProps) {
   return (
     <div className={cn(
-      'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg shadow-indigo-500/30',
+      'bg-gradient-to-br from-[var(--usg-primary)] to-[var(--usg-primary-light)] rounded-2xl p-6 text-white shadow-lg relative overflow-hidden',
       className
     )}>
-      <p className="text-white/80 text-sm">{title}</p>
-      <p className="text-3xl font-bold mt-1">{value}</p>
-      {subtitle && <p className="text-white/60 text-sm mt-2">{subtitle}</p>}
+      {/* Background Accent */}
+      <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
+      
+      <p className="text-white/80 text-sm relative z-10">{title}</p>
+      <p className="text-3xl font-bold mt-1 relative z-10">{value}</p>
+      {subtitle && <p className="text-white/60 text-sm mt-2 relative z-10">{subtitle}</p>}
     </div>
   )
 }

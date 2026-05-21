@@ -155,6 +155,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (tagihan.deadline < new Date()) {
+      return NextResponse.json(
+        { success: false, error: 'Deadline pembayaran telah lewat' },
+        { status: 400 }
+      )
+    }
+
     // Check if already paid
     const existingPayment = await prisma.pembayaran.findUnique({
       where: {

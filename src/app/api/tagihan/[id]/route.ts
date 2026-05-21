@@ -71,6 +71,21 @@ export async function PUT(
       );
     }
 
+    if (user!.role !== "ADMIN" && existing.createdByOperatorId !== user!.id) {
+      return NextResponse.json(
+        { success: false, error: "Anda tidak memiliki akses ke tagihan ini" },
+        { status: 403 }
+      );
+    }
+
+    // Input validation
+    if (nominal && isNaN(Number(nominal))) {
+      return NextResponse.json(
+        { success: false, error: "Nominal tidak valid" },
+        { status: 400 }
+      );
+    }
+
     const updated = await prisma.tagihan.update({
       where: { id },
       data: {
@@ -102,7 +117,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/tagihan/[id] - HARD DELETE tagihan (permanent)
+// DELETE /api/tagihan/[id] - SOFT DELETE tagihan
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -117,32 +132,38 @@ export async function DELETE(
       where: { id },
     });
 
-    if (!existing) {
+    if (!existing || existing.deletedAt) {
       return NextResponse.json(
         { success: false, error: "Tagihan tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // First delete related pembayaran records
-    await prisma.pembayaran.deleteMany({
-      where: { tagihanId: id },
-    });
+    if (user!.role !== "ADMIN" && existing.createdByOperatorId !== user!.id) {
+      return NextResponse.json(
+        { success: false, error: "Anda tidak memiliki akses ke tagihan ini" },
+        { status: 403 }
+      );
+    }
 
-    // Then hard delete the tagihan
-    await prisma.tagihan.delete({
+    // Soft delete the tagihan
+    await prisma.tagihan.update({
       where: { id },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
     });
 
     await createAuditLog(user!.id, "TAGIHAN_DELETED", {
       tagihanId: id,
       tagihanTitle: existing.title,
-      deleteType: "HARD_DELETE",
+      deleteType: "SOFT_DELETE",
     });
 
     return NextResponse.json({
       success: true,
-      message: "Tagihan berhasil dihapus permanen",
+      message: "Tagihan berhasil dihapus",
     });
   } catch (error) {
     console.error("Error deleting tagihan:", error);

@@ -45,8 +45,10 @@ export default function AdminUsersPage() {
     angkatan: "",
     password: "",
   });
+  const [passwordError, setPasswordError] = useState("");
 
   // Filters
+  const [searchQuery, setSearchQuery] = useState(""); // Support for name, nim
   const [filterProdi, setFilterProdi] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
@@ -59,10 +61,13 @@ export default function AdminUsersPage() {
   }>({ prodiList: [], angkatanByProdi: {} });
 
   useEffect(() => {
-    fetchUsers();
-  }, [filterProdi, filterStatus, page]);
+    // Add debounce for search query
+    const timeoutId = setTimeout(() => {
+      fetchUsers();
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, filterProdi, filterStatus, page]);
 
-  // Fetch available scopes when modal opens
   useEffect(() => {
     if (showCreateModal) {
       fetchAvailableScopes();
@@ -88,6 +93,7 @@ export default function AdminUsersPage() {
       params.append("page", page.toString());
       if (filterProdi) params.append("prodi", filterProdi);
       if (filterStatus) params.append("status", filterStatus);
+      if (searchQuery) params.append("search", searchQuery);
 
       const res = await fetch(`/api/admin/users?${params}`);
       const data = await res.json();
@@ -148,6 +154,13 @@ export default function AdminUsersPage() {
 
   async function handleCreateUser(e: React.FormEvent) {
     e.preventDefault();
+    
+    if (newUser.password.length < 6) {
+      setPasswordError("Password minimal 6 karakter");
+      return;
+    }
+    setPasswordError("");
+    
     setIsSubmitting(true);
     setResult(null);
 
@@ -183,13 +196,12 @@ export default function AdminUsersPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text-primary)]">
             Kelola Users
           </h1>
-          <p className="text-gray-500 text-xs sm:text-sm mt-1">
+          <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-1">
             Manage semua mahasiswa dalam sistem
           </p>
         </div>
@@ -203,21 +215,26 @@ export default function AdminUsersPage() {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Tambah User
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6 bg-white border-gray-100">
+      <Card className="mb-6">
         <CardContent className="py-4">
           <div className="flex flex-wrap items-end gap-3 sm:gap-4">
+            <div className="w-full sm:flex-1">
+              <Input
+                label="Cari User"
+                placeholder="Cari berdasarkan NIM atau Nama..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
             <div className="w-full sm:w-48">
               <Select
                 label="Prodi"
@@ -251,62 +268,42 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
 
-      {/* Result Message */}
       {result && (
-        <div
-          className={`mb-6 p-3 sm:p-4 rounded-xl text-sm ${
-            result.success
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
+        <div className={`mb-6 p-3 sm:p-4 rounded-xl text-sm ${result.success ? "alert-success" : "alert-danger"}`}>
           {result.message}
         </div>
       )}
 
-      {/* Users Table */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
+      <div className="table-wrapper">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+          <table className="table min-w-[700px]">
+            <thead>
               <tr>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  NIM
-                </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  Nama
-                </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  Prodi
-                </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  Saldo
-                </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                  Aksi
-                </th>
+                <th>NIM</th>
+                <th>Nama</th>
+                <th>Prodi</th>
+                <th>Saldo</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
+                    <div className="animate-spin w-8 h-8 border-4 border-[var(--usg-primary)] border-t-transparent rounded-full mx-auto"></div>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                    className="px-6 py-12 text-center text-[var(--text-muted)]"
                   >
                     Tidak ada user.{" "}
                     <button
                       onClick={() => setShowCreateModal(true)}
-                      className="text-indigo-600 dark:text-indigo-400 hover:underline"
+                      className="text-[var(--color-info)] hover:underline"
                     >
                       Buat user baru
                     </button>
@@ -314,28 +311,17 @@ export default function AdminUsersPage() {
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr
-                    key={u.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <td className="px-4 sm:px-6 py-4 text-sm font-mono text-gray-900 dark:text-gray-100">
-                      {u.identifier}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {u.name}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      {u.prodi || "-"}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {formatRupiah(u.balance?.balance || 0)}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4">
+                  <tr key={u.id}>
+                    <td className="font-mono text-[var(--text-primary)]">{u.identifier}</td>
+                    <td className="font-medium text-[var(--text-primary)]">{u.name}</td>
+                    <td className="text-[var(--text-secondary)]">{u.prodi || "-"}</td>
+                    <td className="font-medium text-[var(--text-primary)]">{formatRupiah(u.balance?.balance || 0)}</td>
+                    <td>
                       <Badge variant={u.isActive ? "success" : "danger"}>
                         {u.isActive ? "Aktif" : "Nonaktif"}
                       </Badge>
                     </td>
-                    <td className="px-4 sm:px-6 py-4">
+                    <td>
                       <div className="flex flex-wrap gap-2">
                         <Button
                           size="sm"
@@ -376,10 +362,9 @@ export default function AdminUsersPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-4 sm:px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
+          <div className="px-4 sm:px-6 py-4 border-t border-[var(--border-primary)] flex items-center justify-between">
+            <p className="text-sm text-[var(--text-secondary)]">
               Halaman {page} dari {totalPages}
             </p>
             <div className="flex gap-2">
@@ -402,9 +387,8 @@ export default function AdminUsersPage() {
             </div>
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Create User Modal */}
       <Modal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
@@ -475,9 +459,8 @@ export default function AdminUsersPage() {
           </div>
 
           {availableScopes.prodiList.length === 0 && (
-            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
-              ⚠️ Belum ada Operator aktif. Buat Operator terlebih dahulu sebelum
-              menambah User.
+            <div className="alert-warning text-sm mt-2">
+              ⚠️ Belum ada Operator aktif. Buat Operator terlebih dahulu sebelum menambah User.
             </div>
           )}
 
@@ -485,14 +468,16 @@ export default function AdminUsersPage() {
             label="Password"
             type="password"
             value={newUser.password}
-            onChange={(e) =>
+            onChange={(e) => {
               setNewUser({ ...newUser, password: e.target.value })
-            }
+              setPasswordError("");
+            }}
             placeholder="Minimal 6 karakter"
+            error={passwordError}
             required
           />
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[var(--text-muted)]">
             PIN default: <span className="font-mono">123456</span>
           </p>
 
@@ -516,7 +501,6 @@ export default function AdminUsersPage() {
         </form>
       </Modal>
 
-      {/* Action Confirmation Modal */}
       <Modal
         isOpen={!!selectedUser && !!actionType}
         onClose={() => {
@@ -538,16 +522,16 @@ export default function AdminUsersPage() {
       >
         {selectedUser && (
           <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-sm text-gray-600">
+            <div className="p-4 bg-[var(--bg-tertiary)] rounded-xl">
+              <p className="text-sm text-[var(--text-primary)]">
                 <span className="font-medium">{selectedUser.name}</span>
                 <br />
-                <span className="text-gray-500">{selectedUser.identifier}</span>
+                <span className="text-[var(--text-secondary)]">{selectedUser.identifier}</span>
               </p>
             </div>
 
             {actionType === "toggle" && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[var(--text-secondary)]">
                 User ini akan{" "}
                 {selectedUser.isActive ? "dinonaktifkan" : "diaktifkan"}.
                 {selectedUser.isActive && " User tidak akan bisa login."}
@@ -555,7 +539,7 @@ export default function AdminUsersPage() {
             )}
 
             {actionType === "reset" && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[var(--text-secondary)]">
                 Password akan direset ke{" "}
                 <span className="font-mono font-medium">password123</span>
               </p>
@@ -572,9 +556,9 @@ export default function AdminUsersPage() {
 
             {actionType === "add-balance" && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[var(--text-secondary)]">
                   Saldo saat ini:{" "}
-                  <span className="font-semibold">
+                  <span className="font-semibold text-[var(--text-primary)]">
                     {formatRupiah(selectedUser.balance?.balance || 0)}
                   </span>
                 </p>

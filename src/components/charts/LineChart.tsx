@@ -1,6 +1,7 @@
 'use client'
 
-import { LineChart as TremorLineChart, Card } from '@tremor/react'
+import { LineChart as TremorLineChart } from '@tremor/react'
+import { cn } from '@/lib/utils'
 
 interface ChartDataPoint {
   name: string
@@ -23,15 +24,23 @@ export function LineChart({
   categories,
   index,
   title,
-  colors = ['indigo', 'purple'],
+  colors = ['blue', 'amber', 'emerald', 'rose', 'cyan'],
   showLegend = true,
   showGridLines = true,
   className,
 }: LineChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className={cn("chart-container flex items-center justify-center h-72", className)}>
+        <p className="text-[var(--text-muted)]">Tidak ada data tersedia</p>
+      </div>
+    )
+  }
+
   return (
-    <Card className={`bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 ${className}`}>
+    <div className={cn("chart-container", className)}>
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{title}</h3>
+        <h3 className="chart-title">{title}</h3>
       )}
       <TremorLineChart
         data={data}
@@ -43,6 +52,6 @@ export function LineChart({
         className="h-72"
         curveType="monotone"
       />
-    </Card>
+    </div>
   )
 }

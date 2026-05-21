@@ -62,16 +62,14 @@ export default function OperatorTagihanPage() {
   const [nominal, setNominal] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  // Real-time polling: fetch every 5 seconds
+  // Real-time polling: fetch every 30 seconds
   useEffect(() => {
     fetchTagihan();
 
-    // Set up polling interval for real-time updates
     const pollInterval = setInterval(() => {
       fetchTagihan();
-    }, 5000); // 5 seconds - adjust as needed (lower = more real-time, higher = less server load)
+    }, 30000); // 30 seconds
 
-    // Cleanup on unmount
     return () => clearInterval(pollInterval);
   }, []);
 
@@ -144,6 +142,17 @@ export default function OperatorTagihanPage() {
 
   async function handleCreateTagihan(e: React.FormEvent) {
     e.preventDefault();
+    
+    if(Number(nominal) <= 0) {
+      setResult({ success: false, message: "Nominal harus lebih dari 0" });
+      return;
+    }
+    
+    if(new Date(deadline) < new Date(new Date().setHours(0,0,0,0))) {
+      setResult({ success: false, message: "Deadline tidak boleh di masa lalu" });
+      return;
+    }
+
     setIsSubmitting(true);
     setResult(null);
 
@@ -185,18 +194,18 @@ export default function OperatorTagihanPage() {
   ];
 
   const jenisColors: Record<string, string> = {
-    KAS: "bg-blue-100 text-blue-700",
-    ACARA: "bg-purple-100 text-purple-700",
-    SEMINAR: "bg-green-100 text-green-700",
-    OTHER: "bg-gray-100 text-gray-700",
+    KAS: "bg-[var(--color-info)] text-[var(--text-inverse)]",
+    ACARA: "bg-[var(--usg-primary)] text-[var(--text-inverse)]",
+    SEMINAR: "bg-[var(--color-success)] text-[var(--text-inverse)]",
+    OTHER: "bg-[var(--text-muted)] text-[var(--text-inverse)]",
   };
 
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded-2xl"></div>
+        <div className="space-y-6">
+          <div className="skeleton h-8 w-1/3"></div>
+          <div className="skeleton h-64 w-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -204,66 +213,42 @@ export default function OperatorTagihanPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Kelola Tagihan</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Kelola Tagihan</h1>
+          <p className="text-[var(--text-muted)] mt-1">
             Tagihan untuk {session?.user?.prodi} - Angkatan{" "}
             {session?.user?.angkatan}
           </p>
         </div>
-        <Button onClick={() => setShowCreateModal(true)}>
+        <Button onClick={() => setShowCreateModal(true)} className="w-full sm:w-auto">
           <svg
             className="w-5 h-5 mr-2"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Buat Tagihan
         </Button>
       </div>
 
-      {/* Result Message */}
       {result && (
-        <div
-          className={`mb-6 p-4 rounded-xl ${
-            result.success
-              ? "bg-green-50 text-green-700"
-              : "bg-red-50 text-red-700"
-          }`}
-        >
+        <div className={`mb-6 p-4 rounded-xl ${result.success ? "alert-success" : "alert-danger"}`}>
           {result.message}
         </div>
       )}
 
-      {/* Tagihan List */}
       {tagihan.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
+            <div className="w-16 h-16 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <p className="text-gray-500">Belum ada tagihan</p>
+            <p className="text-[var(--text-muted)]">Belum ada tagihan</p>
             <Button onClick={() => setShowCreateModal(true)} className="mt-4">
               Buat Tagihan Pertama
             </Button>
@@ -272,72 +257,47 @@ export default function OperatorTagihanPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tagihan.map((t) => (
-            <Card
-              key={t.id}
-              className="hover:shadow-xl transition-all cursor-pointer"
-              onClick={() => openDetailModal(t)}
-            >
+            <Card key={t.id}>
               <CardContent className="py-5">
                 <div className="flex items-start justify-between mb-3">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      jenisColors[t.jenis]
-                    }`}
-                  >
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${jenisColors[t.jenis]}`}>
                     {t.jenis}
                   </span>
                   <Badge variant={t.isActive ? "success" : "default"}>
                     {t.isActive ? "Aktif" : "Nonaktif"}
                   </Badge>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                <h3 className="font-semibold text-[var(--text-primary)] mb-1">
                   {t.title}
                 </h3>
                 {t.description && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+                  <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">
                     {t.description}
                   </p>
                 )}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-xl font-bold text-[var(--usg-primary)]">
                     {formatRupiah(t.nominal)}
                   </span>
                 </div>
-                <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+                <div className="space-y-1 text-sm text-[var(--text-muted)]">
                   <p>Target: {t.angkatanTarget || "Semua angkatan"}</p>
                   <p>Deadline: {formatDate(t.deadline)}</p>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div className="mt-4 pt-4 border-t border-[var(--border-primary)]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-[var(--text-secondary)]">
                       Sudah Bayar
                     </span>
-                    <span className="font-semibold text-green-600">
+                    <span className="font-semibold text-[var(--color-success)]">
                       {t.paidCount} orang
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDetailModal(t);
-                      }}
-                    >
+                    <Button variant="primary" size="sm" className="flex-1" onClick={() => openDetailModal(t)}>
                       Lihat Detail
                     </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedTagihan(t);
-                        setShowDeleteModal(true);
-                      }}
-                    >
+                    <Button variant="danger" size="sm" className="flex-1" onClick={() => { setSelectedTagihan(t); setShowDeleteModal(true); }}>
                       Hapus
                     </Button>
                   </div>
@@ -348,57 +308,20 @@ export default function OperatorTagihanPage() {
         </div>
       )}
 
-      {/* Create Modal */}
-      <Modal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        title="Buat Tagihan Baru"
-        size="lg"
-      >
+      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Buat Tagihan Baru" size="lg">
         <form onSubmit={handleCreateTagihan} className="space-y-4">
-          <Input
-            label="Judul Tagihan"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Contoh: Kas Mingguan - Desember 2024"
-            required
-          />
-
-          <Textarea
-            label="Deskripsi (opsional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Keterangan tambahan tentang tagihan"
-            rows={2}
-          />
+          <Input label="Judul Tagihan" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Contoh: Kas Mingguan - Desember 2024" required />
+          <Textarea label="Deskripsi (opsional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Keterangan tambahan tentang tagihan" rows={2} />
 
           <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Jenis Tagihan"
-              value={jenis}
-              onChange={(e) => setJenis(e.target.value)}
-              options={jenisOptions}
-            />
-            <Input
-              label="Nominal (Rp)"
-              type="number"
-              value={nominal}
-              onChange={(e) => setNominal(e.target.value)}
-              placeholder="Contoh: 50000"
-              required
-            />
+            <Select label="Jenis Tagihan" value={jenis} onChange={(e) => setJenis(e.target.value)} options={jenisOptions} />
+            <Input label="Nominal (Rp)" type="number" min="1" value={nominal} onChange={(e) => setNominal(e.target.value)} placeholder="Contoh: 50000" required />
           </div>
 
-          <Input
-            label="Deadline"
-            type="date"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            required
-          />
+          <Input label="Deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} required />
 
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
+          <div className="p-3 bg-[var(--color-info-light)] rounded-lg">
+            <p className="text-sm text-[var(--color-info)]">
               📌 Tagihan ini akan otomatis dikirim ke semua mahasiswa{" "}
               <strong>{session?.user?.prodi}</strong> angkatan{" "}
               <strong>{session?.user?.angkatan}</strong>
@@ -406,167 +329,79 @@ export default function OperatorTagihanPage() {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowCreateModal(false)}
-              className="flex-1"
-            >
-              Batal
-            </Button>
-            <Button type="submit" isLoading={isSubmitting} className="flex-1">
-              Buat Tagihan
-            </Button>
+            <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)} className="flex-1">Batal</Button>
+            <Button type="submit" isLoading={isSubmitting} className="flex-1">Buat Tagihan</Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setSelectedTagihan(null);
-        }}
-        title="Hapus Tagihan"
-      >
+      <Modal isOpen={showDeleteModal} onClose={() => { setShowDeleteModal(false); setSelectedTagihan(null); }} title="Hapus Tagihan">
         {selectedTagihan && (
           <div className="space-y-4">
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
-              <p className="text-sm text-red-700 dark:text-red-300">
+            <div className="p-4 bg-[var(--color-danger-light)] rounded-xl">
+              <p className="text-sm text-[var(--color-danger)]">
                 Apakah Anda yakin ingin menghapus tagihan berikut?
               </p>
             </div>
-
-            <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
-                {selectedTagihan.title}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {formatRupiah(selectedTagihan.nominal)}
-              </p>
+            <div className="p-4 bg-[var(--bg-tertiary)] rounded-xl">
+              <p className="font-semibold text-[var(--text-primary)]">{selectedTagihan.title}</p>
+              <p className="text-sm text-[var(--text-secondary)] mt-1">{formatRupiah(selectedTagihan.nominal)}</p>
             </div>
-
             <div className="flex gap-3 pt-4">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setSelectedTagihan(null);
-                }}
-                className="flex-1"
-              >
-                Batal
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleDeleteTagihan}
-                isLoading={isDeleting}
-                className="flex-1"
-              >
-                Ya, Hapus Permanen
-              </Button>
+              <Button variant="secondary" onClick={() => { setShowDeleteModal(false); setSelectedTagihan(null); }} className="flex-1">Batal</Button>
+              <Button variant="danger" onClick={handleDeleteTagihan} isLoading={isDeleting} className="flex-1">Ya, Hapus Permanen</Button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Detail Modal - Student Payment Tracking */}
-      <Modal
-        isOpen={showDetailModal}
-        onClose={() => {
-          setShowDetailModal(false);
-          setDetailTagihan(null);
-          setStudents([]);
-        }}
-        title={detailTagihan?.title || "Detail Tagihan"}
-        size="lg"
-      >
+      <Modal isOpen={showDetailModal} onClose={() => { setShowDetailModal(false); setDetailTagihan(null); setStudents([]); }} title={detailTagihan?.title || "Detail Tagihan"} size="lg">
         {detailTagihan && (
           <div className="space-y-4">
-            {/* Tagihan Info */}
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-xl">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-[var(--bg-tertiary)] rounded-xl">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Nominal
-                </p>
-                <p className="font-semibold text-indigo-600 dark:text-indigo-400">
-                  {formatRupiah(detailTagihan.nominal)}
-                </p>
+                <p className="text-sm text-[var(--text-secondary)]">Nominal</p>
+                <p className="font-semibold text-[var(--usg-primary)]">{formatRupiah(detailTagihan.nominal)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Deadline
-                </p>
-                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                  {formatDate(detailTagihan.deadline)}
-                </p>
+                <p className="text-sm text-[var(--text-secondary)]">Deadline</p>
+                <p className="font-semibold text-[var(--text-primary)]">{formatDate(detailTagihan.deadline)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Target
-                </p>
-                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                  {detailTagihan.prodiTarget || "Semua"} -{" "}
-                  {detailTagihan.angkatanTarget || "Semua"}
-                </p>
+                <p className="text-sm text-[var(--text-secondary)]">Target</p>
+                <p className="font-semibold text-[var(--text-primary)]">{detailTagihan.prodiTarget || "Semua"} - {detailTagihan.angkatanTarget || "Semua"}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Progress
-                </p>
-                <p className="font-semibold text-green-600">
-                  {students.filter((s) => s.hasPaid).length} / {students.length}{" "}
-                  Bayar
-                </p>
+                <p className="text-sm text-[var(--text-secondary)]">Progress</p>
+                <p className="font-semibold text-[var(--color-success)]">{students.filter((s) => s.hasPaid).length} / {students.length} Bayar</p>
               </div>
             </div>
 
-            {/* Student List */}
-            <div className="border dark:border-gray-700 rounded-xl overflow-hidden">
+            <div className="border border-[var(--border-primary)] rounded-xl overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 {isLoadingDetail ? (
                   <div className="p-8 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">
-                      Memuat data...
-                    </p>
+                    <div className="animate-spin w-8 h-8 border-4 border-[var(--usg-primary)] border-t-transparent rounded-full mx-auto"></div>
+                    <p className="text-[var(--text-muted)] mt-2">Memuat data...</p>
                   </div>
                 ) : students.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                    Tidak ada mahasiswa dalam target
-                  </div>
+                  <div className="p-8 text-center text-[var(--text-muted)]">Tidak ada mahasiswa dalam target</div>
                 ) : (
                   <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-700 sticky top-0">
+                    <thead className="bg-[var(--bg-tertiary)] sticky top-0">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                          NIM
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                          Nama
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-100 uppercase">
-                          Status
-                        </th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--text-secondary)] uppercase">NIM</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--text-secondary)] uppercase">Nama</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-[var(--text-secondary)] uppercase">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody className="divide-y divide-[var(--border-primary)]">
                       {students.map((student) => (
-                        <tr
-                          key={student.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          <td className="px-4 py-2 text-sm font-mono text-gray-900 dark:text-gray-100">
-                            {student.identifier}
-                          </td>
-                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
-                            {student.name}
-                          </td>
+                        <tr key={student.id} className="hover:bg-[var(--bg-hover)]">
+                          <td className="px-4 py-2 text-sm font-mono text-[var(--text-primary)]">{student.identifier}</td>
+                          <td className="px-4 py-2 text-sm text-[var(--text-primary)]">{student.name}</td>
                           <td className="px-4 py-2">
-                            <Badge
-                              variant={student.hasPaid ? "success" : "danger"}
-                            >
+                            <Badge variant={student.hasPaid ? "success" : "danger"}>
                               {student.hasPaid ? "Lunas" : "Belum"}
                             </Badge>
                           </td>
@@ -579,17 +414,7 @@ export default function OperatorTagihanPage() {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setDetailTagihan(null);
-                  setStudents([]);
-                }}
-                className="flex-1"
-              >
-                Tutup
-              </Button>
+              <Button variant="secondary" onClick={() => { setShowDetailModal(false); setDetailTagihan(null); setStudents([]); }} className="flex-1">Tutup</Button>
             </div>
           </div>
         )}

@@ -44,11 +44,11 @@ export default function SaldoProdiPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+        <div className="space-y-6">
+          <div className="skeleton h-8 w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+              <div key={i} className="skeleton h-32 w-full"></div>
             ))}
           </div>
         </div>
@@ -58,15 +58,13 @@ export default function SaldoProdiPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Saldo Prodi</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Saldo Prodi</h1>
+        <p className="text-[var(--text-secondary)] mt-1">
           Transparansi keuangan prodi {data?.prodi}
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatsCardGradient
           title="Total Saldo Prodi"
@@ -96,37 +94,36 @@ export default function SaldoProdiPage() {
         />
       </div>
 
-      {/* Recent Expenses */}
-      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Riwayat Pengeluaran Prodi</h2>
+      <Card className="border-[var(--border-primary)]">
+        <div className="px-6 py-4 border-b border-[var(--border-primary)]">
+          <h2 className="font-semibold text-[var(--text-primary)]">Riwayat Pengeluaran Prodi</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+          <table className="table">
+            <thead className="bg-[var(--bg-tertiary)]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tanggal</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Keterangan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Jumlah</th>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+                <th>Jumlah</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            <tbody>
               {data?.recentExpenses?.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={3} className="px-6 py-12 text-center text-[var(--text-muted)]">
                     Belum ada pengeluaran tercatat
                   </td>
                 </tr>
               ) : (
                 data?.recentExpenses?.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <tr key={expense.id} className="hover:bg-[var(--bg-hover)]">
+                    <td className="text-[var(--text-secondary)]">
                       {formatDate(expense.createdAt)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                    <td className="text-[var(--text-primary)]">
                       {expense.description}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-red-600 dark:text-red-400">
+                    <td className="font-medium text-[var(--color-danger)]">
                       -{formatRupiah(expense.amount)}
                     </td>
                   </tr>
@@ -137,15 +134,14 @@ export default function SaldoProdiPage() {
         </div>
       </Card>
 
-      {/* Info Box */}
-      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+      <div className="mt-6 p-4 bg-[var(--color-info-light)] rounded-xl border border-[var(--color-info)] opacity-90">
         <div className="flex items-start gap-3">
-          <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[var(--color-info)] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <div className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="text-sm text-[var(--text-primary)]">
             <p className="font-medium mb-1">Tentang Transparansi</p>
-            <p className="text-blue-600 dark:text-blue-400">
+            <p className="text-[var(--text-secondary)]">
               Halaman ini menampilkan saldo dan pengeluaran prodi Anda untuk menjaga transparansi keuangan.
               Pemasukan berasal dari pembayaran tagihan, sementara pengeluaran dicatat oleh operator prodi.
             </p>

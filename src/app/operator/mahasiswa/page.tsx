@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { formatRupiah } from "@/lib/utils";
+import { Badge } from "@/components/ui/Badge";
 
 interface User {
   id: string;
@@ -20,16 +21,21 @@ export default function OperatorMahasiswaPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState("");
 
-  // Real-time polling: fetch every 3 seconds for live updates
   useEffect(() => {
     async function fetchUsersData() {
       try {
         const res = await fetch("/api/operator/mahasiswa");
         const data = await res.json();
-        setUsers(data.data || []);
+        if(data.success){
+          setUsers(data.data || []);
+        } else {
+          setError(data.error)
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
+        setError("Gagal memuat data mahasiswa")
       } finally {
         setIsLoading(false);
       }
@@ -37,8 +43,8 @@ export default function OperatorMahasiswaPage() {
 
     fetchUsersData();
 
-    // Set up polling interval for real-time student data updates
-    const pollInterval = setInterval(fetchUsersData, 3000); // 3 seconds
+    // Changed from 3 seconds to 30 seconds
+    const pollInterval = setInterval(fetchUsersData, 30000); 
 
     return () => clearInterval(pollInterval);
   }, []);
@@ -51,7 +57,6 @@ export default function OperatorMahasiswaPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
           Data Mahasiswa
@@ -61,7 +66,8 @@ export default function OperatorMahasiswaPage() {
         </p>
       </div>
 
-      {/* Search */}
+      {error && <div className="alert-danger mb-4">{error}</div>}
+
       <div className="mb-4">
         <input
           type="text"
@@ -72,83 +78,57 @@ export default function OperatorMahasiswaPage() {
         />
       </div>
 
-      {/* Stats - Only Total and Active */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">Total Mahasiswa</p>
+          <p className="stats-card-label">Total Mahasiswa</p>
           <p className="stats-card-value">{users.length}</p>
         </div>
         <div className="stats-card">
-          <p className="text-sm text-[var(--text-muted)]">Aktif</p>
+          <p className="stats-card-label">Aktif</p>
           <p className="stats-card-value text-[var(--color-success)]">
             {users.filter((u) => u.isActive).length}
           </p>
         </div>
       </div>
 
-      {/* Table - No payment status column */}
-      <div className="card overflow-hidden">
+      <div className="table-wrapper">
         <div className="overflow-x-auto">
           <table className="table">
             <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase">
-                  NIM
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase">
-                  Nama
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase">
-                  Saldo
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--text-muted)] uppercase">
-                  Status
-                </th>
+                <th>NIM</th>
+                <th>Nama</th>
+                <th>Saldo</th>
+                <th>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border-primary)]">
+            <tbody>
               {isLoading ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-[var(--text-muted)]"
-                  >
+                  <td colSpan={4} className="px-4 py-8 text-center text-[var(--text-muted)]">
                     Memuat data...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-[var(--text-muted)]"
-                  >
-                    {searchTerm
-                      ? "Tidak ada hasil pencarian"
-                      : "Belum ada mahasiswa"}
+                  <td colSpan={4} className="px-4 py-8 text-center text-[var(--text-muted)]">
+                    {searchTerm ? "Tidak ada hasil pencarian" : "Belum ada mahasiswa"}
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-[var(--bg-hover)]">
-                    <td className="px-4 py-3 font-mono text-sm text-[var(--text-primary)]">
-                      {user.identifier}
+                  <tr key={user.id}>
+                    <td className="font-mono text-[var(--text-primary)]">{user.identifier}</td>
+                    <td>
+                      <p className="font-medium text-[var(--text-primary)]">{user.name}</p>
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-[var(--text-primary)]">
-                        {user.name}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-[var(--usg-accent)]">
+                    <td className="font-semibold text-[var(--usg-accent)]">
                       {formatRupiah(user.balance?.balance || 0)}
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`badge ${
-                          user.isActive ? "badge-success" : "badge-danger"
-                        }`}
-                      >
+                    <td>
+                      <Badge variant={user.isActive ? "success" : "danger"}>
                         {user.isActive ? "Aktif" : "Nonaktif"}
-                      </span>
+                      </Badge>
                     </td>
                   </tr>
                 ))

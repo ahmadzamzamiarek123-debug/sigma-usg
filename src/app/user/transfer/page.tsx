@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { formatRupiah } from "@/lib/utils";
 
 export default function TransferPage() {
+  const { data: session } = useSession();
   const [balance, setBalance] = useState(0);
   const [toNim, setToNim] = useState("");
   const [amount, setAmount] = useState("");
@@ -17,12 +19,8 @@ export default function TransferPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; message: string; } | null>(null);
 
-  // NIM Lookup state
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [recipient, setRecipient] = useState<{
     name: string;
@@ -46,12 +44,17 @@ export default function TransferPage() {
     fetchBalance();
   }, []);
 
-  // Real-time NIM lookup
   useEffect(() => {
     const lookupNim = async () => {
       if (toNim.length !== 8) {
         setRecipient(null);
         setLookupError(null);
+        return;
+      }
+      
+      if (toNim === session?.user?.identifier) {
+        setRecipient(null);
+        setLookupError("Tidak dapat transfer ke diri sendiri");
         return;
       }
 
@@ -67,7 +70,7 @@ export default function TransferPage() {
           setLookupError(null);
         } else {
           setRecipient(null);
-          setLookupError(data.error);
+          setLookupError(data.error || "NIM tidak ditemukan");
         }
       } catch {
         setRecipient(null);
@@ -77,26 +80,38 @@ export default function TransferPage() {
       }
     };
 
-    // Debounce lookup
-    const timer = setTimeout(lookupNim, 500);
+    const timer = setTimeout(lookupNim, 300);
     return () => clearTimeout(timer);
-  }, [toNim]);
+  }, [toNim, session?.user?.identifier]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!toNim || !amount || !pin) {
-      setResult({ success: false, message: "Semua field harus diisi" });
+    
+    if (toNim === session?.user?.identifier) {
+      setResult({ success: false, message: "Tidak dapat transfer ke diri sendiri" });
       return;
     }
+    
+    if (!toNim || !amount || !pin) {
+      setResult({ success: false, message: "Semua field wajib harus diisi" });
+      return;
+    }
+    
+    if (!recipient) {
+      setResult({ success: false, message: "NIM tujuan tidak valid" });
+      return;
+    }
+    
     if (!/^\d{8}$/.test(toNim)) {
       setResult({ success: false, message: "NIM harus 8 digit angka" });
       return;
     }
-    if (Number(amount) <= 0) {
-      setResult({ success: false, message: "Nominal harus lebih dari 0" });
+    const numAmount = Number(amount);
+    if (numAmount < 1000) {
+      setResult({ success: false, message: "Nominal transfer minimal Rp 1.000" });
       return;
     }
-    if (Number(amount) > balance) {
+    if (numAmount > balance) {
       setResult({ success: false, message: "Saldo tidak mencukupi" });
       return;
     }
@@ -137,6 +152,7 @@ export default function TransferPage() {
         setAmount("");
         setMessage("");
         setPin("");
+        setRecipient(null);
       } else {
         setResult({ success: false, message: data.error });
       }
@@ -151,9 +167,9 @@ export default function TransferPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="animate-pulse space-y-6">
-          <div className="h-32 bg-gray-200 rounded-2xl"></div>
-          <div className="h-64 bg-gray-200 rounded-2xl"></div>
+        <div className="space-y-6">
+          <div className="skeleton h-32 w-full"></div>
+          <div className="skeleton h-64 w-full"></div>
         </div>
       </DashboardLayout>
     );
@@ -161,23 +177,20 @@ export default function TransferPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Transfer Saldo</h1>
-        <p className="text-gray-500 mt-1">Kirim saldo ke sesama mahasiswa</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Transfer Saldo</h1>
+        <p className="text-[var(--text-secondary)] mt-1">Kirim saldo ke sesama mahasiswa</p>
       </div>
 
-      {/* Balance Info */}
       <Card variant="gradient" className="mb-8">
         <CardContent className="py-6">
-          <p className="text-white/80 text-sm mb-1">Saldo Tersedia</p>
-          <p className="text-3xl font-bold text-white">
+          <p className="text-[var(--text-inverse)] opacity-80 text-sm mb-1">Saldo Tersedia</p>
+          <p className="text-3xl font-bold text-[var(--text-inverse)]">
             {formatRupiah(balance)}
           </p>
         </CardContent>
       </Card>
 
-      {/* Transfer Form */}
       <Card className="max-w-lg">
         <CardContent className="py-6">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -189,43 +202,32 @@ export default function TransferPage() {
               onChange={(e) => setToNim(e.target.value)}
               maxLength={8}
               icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               }
             />
 
-            {/* Recipient Lookup Result */}
             {isLookingUp && (
-              <div className="-mt-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg animate-pulse">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="-mt-3 p-3 bg-[var(--bg-tertiary)] rounded-lg animate-pulse">
+                <p className="text-sm text-[var(--text-secondary)]">
                   Mencari...
                 </p>
               </div>
             )}
             {recipient && !isLookingUp && (
-              <div className="-mt-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+              <div className="-mt-3 p-3 bg-[var(--color-success-light)] rounded-lg border border-[var(--color-success)]">
+                <p className="text-sm text-[var(--color-success)] font-medium">
                   ✓ {recipient.name}
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-[var(--color-success)] opacity-80 mt-1">
                   {recipient.prodi} - Angkatan {recipient.angkatan}
                 </p>
               </div>
             )}
-            {lookupError && !isLookingUp && (
-              <div className="-mt-3 p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
-                <p className="text-sm text-red-700 dark:text-red-300">
+            {lookupError && !isLookingUp && toNim.length > 0 && (
+              <div className="-mt-3 p-3 bg-[var(--color-danger-light)] rounded-lg border border-[var(--color-danger)]">
+                <p className="text-sm text-[var(--color-danger)]">
                   ✗ {lookupError}
                 </p>
               </div>
@@ -237,27 +239,21 @@ export default function TransferPage() {
               placeholder="Contoh: 50000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              min="1000"
               icon={<span className="text-sm font-medium">Rp</span>}
             />
 
-            {/* Message Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pesan{" "}
-                <span className="text-gray-400 font-normal">(opsional)</span>
-              </label>
-              <textarea
-                placeholder="Contoh: Bayar makan siang..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                maxLength={200}
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none text-gray-900 placeholder:text-gray-400"
-              />
-              <p className="text-xs text-gray-400 mt-1 text-right">
-                {message.length}/200
-              </p>
-            </div>
+            <Textarea
+              label="Pesan (opsional)"
+              placeholder="Contoh: Bayar makan siang..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              maxLength={200}
+              rows={3}
+            />
+            <p className="text-xs text-[var(--text-muted)] mt-1 text-right">
+              {message.length}/200
+            </p>
 
             <Input
               label="PIN Transaksi"
@@ -267,47 +263,21 @@ export default function TransferPage() {
               onChange={(e) => setPin(e.target.value)}
               maxLength={6}
               icon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               }
             />
 
             {result && (
-              <div
-                className={`p-4 rounded-xl ${
-                  result.success
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
+              <div className={`p-4 rounded-xl ${result.success ? "alert-success" : "alert-danger"}`}>
                 {result.message}
               </div>
             )}
 
             <Button type="submit" className="w-full">
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                />
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
               Transfer Sekarang
             </Button>
@@ -315,33 +285,32 @@ export default function TransferPage() {
         </CardContent>
       </Card>
 
-      {/* Confirmation Modal */}
       <Modal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         title="Konfirmasi Transfer"
       >
         <div className="space-y-4">
-          <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+          <div className="bg-[var(--bg-tertiary)] rounded-xl p-4 space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-500">NIM Tujuan</span>
-              <span className="font-medium">{toNim}</span>
+              <span className="text-[var(--text-secondary)]">Penerima</span>
+              <span className="font-medium text-[var(--text-primary)]">{recipient?.name} ({toNim})</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Nominal</span>
-              <span className="font-semibold text-indigo-600">
+              <span className="text-[var(--text-secondary)]">Nominal</span>
+              <span className="font-semibold text-[var(--usg-primary)]">
                 {formatRupiah(Number(amount))}
               </span>
             </div>
             {message.trim() && (
-              <div className="pt-2 border-t border-gray-200">
-                <span className="text-gray-500 text-sm block mb-1">Pesan</span>
-                <p className="text-gray-800 text-sm">{message}</p>
+              <div className="pt-2 border-t border-[var(--border-primary)]">
+                <span className="text-[var(--text-secondary)] text-sm block mb-1">Pesan</span>
+                <p className="text-[var(--text-primary)] text-sm">{message}</p>
               </div>
             )}
           </div>
 
-          <p className="text-sm text-gray-500 text-center">
+          <p className="text-sm text-[var(--text-muted)] text-center">
             Pastikan data sudah benar. Transfer tidak dapat dibatalkan.
           </p>
 

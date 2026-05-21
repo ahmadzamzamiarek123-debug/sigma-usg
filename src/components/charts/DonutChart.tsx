@@ -1,6 +1,7 @@
 'use client'
 
-import { DonutChart as TremorDonutChart, Card, Legend } from '@tremor/react'
+import { DonutChart as TremorDonutChart, Legend } from '@tremor/react'
+import { cn } from '@/lib/utils'
 
 interface ChartDataPoint {
   name: string
@@ -19,15 +20,23 @@ interface DonutChartProps {
 export function DonutChart({
   data,
   title,
-  colors = ['indigo', 'purple', 'pink', 'emerald', 'amber'],
+  colors = ['blue', 'amber', 'emerald', 'rose', 'cyan'],
   showLabel = true,
   showAnimation = true,
   className,
 }: DonutChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className={cn("chart-container flex items-center justify-center h-72", className)}>
+        <p className="text-[var(--text-muted)]">Tidak ada data tersedia</p>
+      </div>
+    )
+  }
+
   return (
-    <Card className={`bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 ${className}`}>
+    <div className={cn("chart-container", className)}>
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{title}</h3>
+        <h3 className="chart-title">{title}</h3>
       )}
       <div className="flex items-center justify-center">
         <TremorDonutChart
@@ -45,6 +54,6 @@ export function DonutChart({
         colors={colors}
         className="mt-4 justify-center"
       />
-    </Card>
+    </div>
   )
 }

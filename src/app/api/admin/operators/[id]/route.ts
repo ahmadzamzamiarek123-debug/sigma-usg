@@ -106,7 +106,7 @@ export async function PATCH(
 
       return NextResponse.json({
         success: true,
-        message: "Password operator berhasil direset ke: password123",
+        message: "Password operator berhasil direset ke default",
       });
     }
 

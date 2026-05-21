@@ -30,6 +30,7 @@
   --color-warning-light: #fef3c7;
   --color-info: #0284c7;
   --color-info-light: #e0f2fe;
+  --color-accent-bg: rgba(245, 166, 35, 0.15);
 
   /* Light Mode Base */
   --bg-primary: #ffffff;
@@ -52,39 +53,40 @@
 
 /* Dark Mode Variables */
 .dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-hover: #475569;
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-tertiary: #374151;
+  --bg-hover: #4b5563;
 
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --text-inverse: #0f172a;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-inverse: #ffffff;
 
-  --border-primary: #334155;
-  --border-secondary: #475569;
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
 
   /* Adjust semantic colors for dark mode */
-  --color-success-light: #166534;
-  --color-danger-light: #991b1b;
-  --color-warning-light: #92400e;
-  --color-info-light: #075985;
+  --color-success: #22c55e;
+  --color-success-light: rgba(34, 197, 94, 0.2);
+  --color-danger: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.2);
+  --color-warning: #f59e0b;
+  --color-warning-light: rgba(245, 158, 11, 0.2);
+  --color-info: #3b82f6;
+  --color-info-light: rgba(59, 130, 246, 0.2);
+  --color-accent-bg: rgba(245, 166, 35, 0.25);
 }
 
 /* ============================================
    Base Styles
    ============================================ */
 html {
-  color-scheme: light;
-}
-
-html.dark {
-  color-scheme: dark;
+  color-scheme: light dark;
 }
 
 body {
@@ -201,7 +203,7 @@ h6 {
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #b91c1c;
+  filter: brightness(0.9);
 }
 
 .btn-outline {
@@ -305,30 +307,6 @@ h6 {
   background: var(--bg-hover);
 }
 
-/* Dark Mode Table - High Contrast Fix */
-.dark .table-wrapper,
-.dark .table {
-  background: #1f2937; /* gray-800 */
-}
-
-.dark .table thead {
-  background: #374151; /* gray-700 */
-}
-
-.dark .table th {
-  color: #f3f4f6; /* gray-100 */
-  border-bottom-color: #4b5563; /* gray-600 */
-}
-
-.dark .table td {
-  color: #f3f4f6; /* gray-100 */
-  border-bottom-color: #374151; /* gray-700 */
-}
-
-.dark .table tbody tr:hover {
-  background: #374151; /* gray-700 */
-}
-
 /* ============================================
    Enterprise Badge
    ============================================ */
@@ -362,7 +340,7 @@ h6 {
 }
 
 .badge-accent {
-  background: rgba(245, 166, 35, 0.15);
+  background: var(--color-accent-bg);
   color: var(--usg-accent-hover);
 }
 
@@ -518,6 +496,48 @@ h6 {
 }
 
 /* ============================================
+   Utilities
+   ============================================ */
+.skeleton {
+  background: var(--bg-hover);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.alert-success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.alert-danger {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.alert-warning {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+/* ============================================
    Responsive Utilities
    ============================================ */
 @media (max-width: 640px) {
@@ -533,40 +553,4 @@ h6 {
   .table td {
     padding: 0.625rem 0.75rem;
   }
-}
-
-/* ============================================
-   Sidebar Styles
-   ============================================ */
-.sidebar {
-  background: var(--bg-primary);
-  border-right: 1px solid var(--border-primary);
-}
-
-.dark .sidebar {
-  background: #111827; /* gray-900 */
-  border-right-color: #374151; /* gray-700 */
-}
-
-/* ============================================
-   Dark Mode Containers & Overrides
-   ============================================ */
-.dark .card {
-  background: #1f2937; /* gray-800 */
-  border-color: #374151; /* gray-700 */
-}
-
-.dark .stats-card {
-  background: #1f2937; /* gray-800 */
-  border-color: #374151; /* gray-700 */
-}
-
-.dark .input {
-  background: #1f2937; /* gray-800 */
-  border-color: #374151; /* gray-700 */
-  color: #f3f4f6; /* gray-100 */
-}
-
-.dark .input::placeholder {
-  color: #6b7280; /* gray-500 */
 }

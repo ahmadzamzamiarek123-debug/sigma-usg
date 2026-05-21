@@ -17,7 +17,7 @@ export async function GET() {
 
     const transactions = await prisma.transaction.findMany({
       where: {
-        user: { prodi: userProdi },
+        userId: user!.id,
         createdAt: { gte: sixMonthsAgo },
       },
       select: {

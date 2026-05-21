@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
     // Filter by operator's prodi AND angkatan (admin can see all)
     const scopeFilter =
       user!.role === "ADMIN"
-        ? {}
+        ? { deletedAt: null }
         : {
             prodiTarget: user!.prodi,
             angkatanTarget: user!.angkatan,
+            deletedAt: null,
           };
 
     const [tagihan, total] = await Promise.all([
@@ -39,8 +40,17 @@ export async function GET(request: NextRequest) {
             select: { name: true },
           },
           _count: {
-            select: { pembayaran: true },
+            select: { 
+              pembayaran: true,
+              // Use Prisma filter for nested _count if possible, 
+              // otherwise we count success payments in a separate step or just use total pembayaran
+            },
           },
+          // We can select the SUCCESS payments count directly
+          pembayaran: {
+            where: { status: "SUCCESS" },
+            select: { id: true },
+          }
         },
       }),
       prisma.tagihan.count({
@@ -48,33 +58,24 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Get paid count for each tagihan
-    const formattedTagihan = await Promise.all(
-      tagihan.map(async (t) => {
-        const paidCount = await prisma.pembayaran.count({
-          where: {
-            tagihanId: t.id,
-            status: "SUCCESS",
-          },
-        });
-
-        return {
-          id: t.id,
-          title: t.title,
-          description: t.description,
-          jenis: t.jenis,
-          prodiTarget: t.prodiTarget,
-          angkatanTarget: t.angkatanTarget,
-          nominal: t.nominal,
-          deadline: t.deadline,
-          isActive: t.isActive,
-          createdByName: t.createdBy.name,
-          totalPembayaran: t._count.pembayaran,
-          paidCount,
-          createdAt: t.createdAt,
-        };
-      })
-    );
+    // Format the tagihan list without N+1 queries
+    const formattedTagihan = tagihan.map((t) => {
+      return {
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        jenis: t.jenis,
+        prodiTarget: t.prodiTarget,
+        angkatanTarget: t.angkatanTarget,
+        nominal: t.nominal,
+        deadline: t.deadline,
+        isActive: t.isActive,
+        createdByName: t.createdBy.name,
+        totalPembayaran: t._count.pembayaran,
+        paidCount: t.pembayaran.length, // Efficiently calculated from include
+        createdAt: t.createdAt,
+      };
+    });
 
     return NextResponse.json({
       success: true,

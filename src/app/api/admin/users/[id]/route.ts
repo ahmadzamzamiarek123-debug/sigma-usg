@@ -76,7 +76,7 @@ export async function PATCH(
 
       await prisma.user.update({
         where: { id },
-        data: { passwordHash },
+        data: { passwordHash, mustChangePassword: true },
       });
 
       await createAuditLog(admin!.id, "USER_PASSWORD_RESET", {
@@ -86,7 +86,7 @@ export async function PATCH(
 
       return NextResponse.json({
         success: true,
-        message: "Password berhasil direset ke default (password123)",
+        message: "Password berhasil direset ke default",
       });
     }
 
@@ -100,49 +100,45 @@ export async function PATCH(
         );
       }
 
-      // Get or create balance
-      const existingBalance = await prisma.balance.findUnique({
-        where: { userId: id },
-      });
-
-      const currentBalance = existingBalance?.balance || 0;
-
-      if (existingBalance) {
-        await prisma.balance.update({
+      // Use transaction to prevent race conditions and ensure data consistency
+      const { newBalance, amountAdded } = await prisma.$transaction(async (tx) => {
+        const existingBalance = await tx.balance.findUnique({
           where: { userId: id },
-          data: { balance: { increment: amount } },
         });
-      } else {
-        await prisma.balance.create({
-          data: { userId: id, balance: amount },
+
+        const currentBalance = existingBalance?.balance || 0;
+
+        const updated = await tx.balance.upsert({
+          where: { userId: id },
+          update: { balance: { increment: amount } },
+          create: { userId: id, balance: amount },
         });
-      }
 
-      const newBalance = currentBalance + amount;
+        await tx.transaction.create({
+          data: {
+            userId: id,
+            type: "TOPUP",
+            amount: amount,
+            balanceBefore: currentBalance,
+            balanceAfter: updated.balance,
+            description: `Top-up saldo oleh Admin`,
+            createdBy: admin!.id,
+          },
+        });
 
-      // Create transaction record
-      await prisma.transaction.create({
-        data: {
-          userId: id,
-          type: "TOPUP",
-          amount: amount,
-          balanceBefore: currentBalance,
-          balanceAfter: newBalance,
-          description: `Top-up saldo oleh Admin`,
-          createdBy: admin!.id,
-        },
+        return { newBalance: updated.balance, amountAdded: amount };
       });
 
       await createAuditLog(admin!.id, "TOPUP_APPROVED", {
         targetUserId: id,
         targetUserName: targetUser.name,
-        amount: amount,
+        amount: amountAdded,
         description: "Admin manual add balance",
       });
 
       return NextResponse.json({
         success: true,
-        message: `Berhasil menambahkan saldo Rp ${amount.toLocaleString(
+        message: `Berhasil menambahkan saldo Rp ${amountAdded.toLocaleString(
           "id-ID"
         )}`,
       });

@@ -10,29 +10,20 @@ import { Input } from "@/components/ui/Input";
 export default function ProfilPage() {
   const { data: session, update } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "pin">(
-    "profile"
-  );
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "pin">("profile");
 
-  // Check if user must change password (first-time setup)
   const mustChangePassword = session?.user?.mustChangePassword === true;
 
-  // Password form
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // PIN form
   const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
 
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [result, setResult] = useState<{ success: boolean; message: string; } | null>(null);
 
-  // Auto-switch to password tab if must change password
   useEffect(() => {
     if (mustChangePassword) {
       setActiveTab("password");
@@ -41,6 +32,11 @@ export default function ProfilPage() {
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
+
+    if (newPassword === currentPassword && !mustChangePassword) {
+      setResult({ success: false, message: "Password baru tidak boleh sama dengan password lama" });
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       setResult({ success: false, message: "Password baru tidak sama" });
@@ -60,7 +56,6 @@ export default function ProfilPage() {
         newPassword,
       };
 
-      // Only include currentPassword if not first-time setup
       if (!mustChangePassword) {
         body.currentPassword = currentPassword;
       }
@@ -79,7 +74,8 @@ export default function ProfilPage() {
         setNewPassword("");
         setConfirmPassword("");
 
-        // Refresh session if mustChangePassword was cleared
+        setTimeout(() => setResult(null), 3000);
+
         if (data.mustChangePassword === false) {
           await update();
         }
@@ -95,6 +91,11 @@ export default function ProfilPage() {
 
   async function handlePinChange(e: React.FormEvent) {
     e.preventDefault();
+
+    if (newPin === currentPin) {
+      setResult({ success: false, message: "PIN baru tidak boleh sama dengan PIN lama" });
+      return;
+    }
 
     if (newPin !== confirmPin) {
       setResult({ success: false, message: "PIN baru tidak sama" });
@@ -123,6 +124,7 @@ export default function ProfilPage() {
         setCurrentPin("");
         setNewPin("");
         setConfirmPin("");
+        setTimeout(() => setResult(null), 3000);
       } else {
         setResult({ success: false, message: data.error });
       }
@@ -141,51 +143,39 @@ export default function ProfilPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Profil Saya</h1>
-        <p className="text-gray-500 mt-1">Kelola informasi akun dan keamanan</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Profil Saya</h1>
+        <p className="text-[var(--text-secondary)] mt-1">Kelola informasi akun dan keamanan</p>
       </div>
 
-      {/* First-time Setup Alert */}
       {mustChangePassword && (
-        <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
+        <div className="alert-warning mb-6">
           <div className="flex items-start gap-3">
-            <svg
-              className="w-5 h-5 mt-0.5 flex-shrink-0"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                clipRule="evenodd"
-              />
+            <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
             </svg>
             <div>
               <p className="font-semibold">Pengaturan Awal Diperlukan</p>
               <p className="text-sm mt-1">
-                Untuk keamanan akun, silakan ubah password default Anda sebelum
-                melanjutkan.
+                Untuk keamanan akun, silakan ubah password default Anda sebelum melanjutkan.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Profile Card */}
       <Card variant="gradient" className="mb-8">
         <CardContent className="py-8">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-white">
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-[var(--text-inverse)]">
               {session?.user?.name?.[0]?.toUpperCase() || "U"}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-[var(--text-inverse)]">
                 {session?.user?.name}
               </h2>
-              <p className="text-white/80">{session?.user?.identifier}</p>
-              <p className="text-white/60 text-sm mt-1">
+              <p className="text-[var(--text-inverse)] opacity-80">{session?.user?.identifier}</p>
+              <p className="text-[var(--text-inverse)] opacity-60 text-sm mt-1">
                 {session?.user?.prodi} • Angkatan {session?.user?.angkatan}
               </p>
             </div>
@@ -193,7 +183,6 @@ export default function ProfilPage() {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {tabs.map((tab) => (
           <button
@@ -204,8 +193,8 @@ export default function ProfilPage() {
             }}
             className={`px-4 py-2 rounded-xl font-medium transition-all ${
               activeTab === tab.id
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-[var(--usg-primary)] text-white"
+                : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
             }`}
           >
             {tab.label}
@@ -213,18 +202,10 @@ export default function ProfilPage() {
         ))}
       </div>
 
-      {/* Tab Content */}
       <Card className="max-w-lg">
         <CardContent className="py-6">
-          {/* Result Message */}
           {result && (
-            <div
-              className={`mb-6 p-4 rounded-xl ${
-                result.success
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
+            <div className={`mb-6 ${result.success ? "alert-success" : "alert-danger"}`}>
               {result.message}
             </div>
           )}
@@ -232,34 +213,34 @@ export default function ProfilPage() {
           {activeTab === "profile" && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   NIM
                 </label>
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-[var(--text-primary)]">
                   {session?.user?.identifier}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Nama
                 </label>
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-[var(--text-primary)]">
                   {session?.user?.name}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Program Studi
                 </label>
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-[var(--text-primary)]">
                   {session?.user?.prodi}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Angkatan
                 </label>
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-lg font-medium text-[var(--text-primary)]">
                   {session?.user?.angkatan}
                 </p>
               </div>
@@ -268,7 +249,6 @@ export default function ProfilPage() {
 
           {activeTab === "password" && (
             <form onSubmit={handlePasswordChange} className="space-y-4">
-              {/* Only show current password field if not first-time setup */}
               {!mustChangePassword && (
                 <Input
                   label="Password Saat Ini"

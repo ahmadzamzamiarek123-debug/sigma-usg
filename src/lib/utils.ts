@@ -96,29 +96,29 @@ export function getStatusColor(status: string): string {
   switch (status) {
     case 'SUCCESS':
     case 'APPROVED':
-      return 'text-green-600 bg-green-100'
+      return 'badge-success'
     case 'PENDING':
-      return 'text-yellow-600 bg-yellow-100'
+      return 'badge-warning'
     case 'FAILED':
     case 'REJECTED':
-      return 'text-red-600 bg-red-100'
+      return 'badge-danger'
     default:
-      return 'text-gray-600 bg-gray-100'
+      return 'badge-info'
   }
 }
 
 export function getTransactionTypeColor(type: string): string {
   switch (type) {
     case 'TOPUP':
-      return 'text-green-600'
+      return 'text-[var(--color-success)]'
     case 'TRANSFER_IN':
-      return 'text-blue-600'
+      return 'text-[var(--color-info)]'
     case 'TRANSFER_OUT':
-      return 'text-orange-600'
+      return 'text-[var(--color-warning)]'
     case 'PAYMENT':
-      return 'text-purple-600'
+      return 'text-[var(--usg-primary)]'
     default:
-      return 'text-gray-600'
+      return 'text-[var(--text-muted)]'
   }
 }
 

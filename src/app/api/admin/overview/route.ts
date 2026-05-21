@@ -15,16 +15,22 @@ export async function GET() {
       totalOperators,
       pendingTopups,
       totalBalanceResult,
-      totalIncomeResult,
+      tagihansWithPayments,
       recentAuditLogs,
     ] = await Promise.all([
-      prisma.user.count({ where: { role: 'USER' } }),
-      prisma.user.count({ where: { role: 'OPERATOR' } }),
+      prisma.user.count({ where: { role: 'USER', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'OPERATOR', deletedAt: null } }),
       prisma.topupRequest.count({ where: { status: 'PENDING' } }),
       prisma.balance.aggregate({ _sum: { balance: true } }),
-      prisma.pembayaran.findMany({
-        where: { status: 'SUCCESS' },
-        include: { tagihan: { select: { nominal: true } } },
+      prisma.tagihan.findMany({
+        select: {
+          nominal: true,
+          _count: {
+            select: {
+              pembayaran: { where: { status: 'SUCCESS' } }
+            }
+          }
+        }
       }),
       prisma.auditLog.findMany({
         take: 10,
@@ -38,7 +44,7 @@ export async function GET() {
     ])
 
     const totalBalance = totalBalanceResult._sum.balance || 0
-    const totalIncome = totalIncomeResult.reduce((sum, p) => sum + p.tagihan.nominal, 0)
+    const totalIncome = tagihansWithPayments.reduce((sum, t) => sum + (t.nominal * t._count.pembayaran), 0)
 
     // Recent activity
     const formattedLogs = recentAuditLogs.map((log) => ({

@@ -52,6 +52,7 @@ export default function OperatorProfilPage() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        setTimeout(() => setResult(null), 3000);
       } else {
         setResult({ success: false, message: data.error });
       }
@@ -69,7 +70,6 @@ export default function OperatorProfilPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">
           Profil Operator
@@ -79,19 +79,18 @@ export default function OperatorProfilPage() {
         </p>
       </div>
 
-      {/* Profile Card */}
       <Card variant="gradient" className="mb-8">
         <CardContent className="py-8">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-white">
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold text-[var(--text-inverse)]">
               {session?.user?.name?.[0]?.toUpperCase() || "O"}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-[var(--text-inverse)]">
                 {session?.user?.name}
               </h2>
-              <p className="text-white/80">{session?.user?.identifier}</p>
-              <p className="text-white/60 text-sm mt-1">
+              <p className="text-[var(--text-inverse)] opacity-80">{session?.user?.identifier}</p>
+              <p className="text-[var(--text-inverse)] opacity-60 text-sm mt-1">
                 Operator {session?.user?.prodi} • Angkatan{" "}
                 {session?.user?.angkatan}
               </p>
@@ -100,7 +99,6 @@ export default function OperatorProfilPage() {
         </CardContent>
       </Card>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {tabs.map((tab) => (
           <button
@@ -120,18 +118,10 @@ export default function OperatorProfilPage() {
         ))}
       </div>
 
-      {/* Tab Content */}
       <Card className="max-w-lg">
         <CardContent className="py-6">
-          {/* Result Message */}
           {result && (
-            <div
-              className={`mb-6 p-4 rounded-xl ${
-                result.success
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
+            <div className={`mb-6 ${result.success ? "alert-success" : "alert-danger"}`}>
               {result.message}
             </div>
           )}

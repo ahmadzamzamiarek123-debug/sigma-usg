@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Input'
-// Badge not used currently
+import { Badge } from '@/components/ui/Badge'
 import { formatDateTime } from '@/lib/utils'
 import { formatAuditAction } from '@/lib/audit'
 
@@ -60,10 +60,13 @@ export default function AdminAuditPage() {
     { value: 'TAGIHAN_CREATED', label: 'Tagihan Created' },
   ]
 
-  const roleColors: Record<string, string> = {
-    USER: 'bg-blue-100 text-blue-700',
-    OPERATOR: 'bg-green-100 text-green-700',
-    ADMIN: 'bg-purple-100 text-purple-700',
+  const getRoleVariant = (role: string) => {
+    switch(role) {
+      case 'USER': return 'info'
+      case 'OPERATOR': return 'success'
+      case 'ADMIN': return 'warning' // using warning mapped to purple style ideally, or default
+      default: return 'default'
+    }
   }
 
   interface DetailData {
@@ -83,17 +86,15 @@ export default function AdminAuditPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Audit Log</h1>
-        <p className="text-gray-500 mt-1">Riwayat semua aktivitas dalam sistem</p>
+      <div className="mb-4 sm:mb-8">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-[var(--text-primary)]">Audit Log</h1>
+        <p className="text-[var(--text-secondary)] text-xs sm:text-sm mt-1">Riwayat semua aktivitas dalam sistem</p>
       </div>
 
-      {/* Filter */}
       <Card className="mb-6">
         <CardContent className="py-4">
-          <div className="flex items-end gap-4">
-            <div className="w-64">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="w-full sm:w-64">
               <Select
                 label="Filter Action"
                 value={actionFilter}
@@ -104,7 +105,7 @@ export default function AdminAuditPage() {
                 options={actionOptions}
               />
             </div>
-            <Button onClick={fetchLogs}>
+            <Button onClick={fetchLogs} className="w-full sm:w-auto mt-2 sm:mt-0">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
@@ -114,29 +115,28 @@ export default function AdminAuditPage() {
         </CardContent>
       </Card>
 
-      {/* Logs Table */}
-      <Card>
+      <div className="table-wrapper">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+          <table className="table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detail</th>
+                <th>Waktu</th>
+                <th>Actor</th>
+                <th>Role</th>
+                <th>Action</th>
+                <th>Detail</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto"></div>
+                    <div className="animate-spin w-8 h-8 border-4 border-[var(--usg-primary)] border-t-transparent rounded-full mx-auto"></div>
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-[var(--text-muted)]">
                     Tidak ada log aktivitas
                   </td>
                 </tr>
@@ -144,26 +144,24 @@ export default function AdminAuditPage() {
                 logs.map((log) => {
                   const detail = parseDetail(log.detail)
                   return (
-                    <tr key={log.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    <tr key={log.id}>
+                      <td className="whitespace-nowrap text-[var(--text-secondary)]">
                         {formatDateTime(log.createdAt)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{log.actorName}</p>
-                          <p className="text-xs text-gray-500">{log.actorIdentifier}</p>
+                          <p className="font-medium text-[var(--text-primary)]">{log.actorName}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{log.actorIdentifier}</p>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${roleColors[log.actorRole]}`}>
-                          {log.actorRole}
-                        </span>
+                      <td>
+                        <Badge variant={getRoleVariant(log.actorRole) as any}>{log.actorRole}</Badge>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-900">{formatAuditAction(log.action)}</p>
-                        <p className="text-xs text-gray-500 font-mono">{log.action}</p>
+                      <td>
+                        <p className="font-medium text-[var(--text-primary)]">{formatAuditAction(log.action)}</p>
+                        <p className="text-xs text-[var(--text-muted)] font-mono">{log.action}</p>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                      <td className="max-w-xs text-[var(--text-secondary)]">
                         {detail.amount !== undefined && (
                           <span>Rp {detail.amount.toLocaleString('id-ID')}</span>
                         )}
@@ -174,7 +172,7 @@ export default function AdminAuditPage() {
                           <span>{detail.tagihanTitle}</span>
                         )}
                         {detail.description && (
-                          <span className="text-gray-400"> ({detail.description})</span>
+                          <span className="text-[var(--text-muted)]"> ({detail.description})</span>
                         )}
                       </td>
                     </tr>
@@ -185,10 +183,9 @@ export default function AdminAuditPage() {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
+          <div className="px-6 py-4 border-t border-[var(--border-primary)] flex flex-wrap items-center justify-between gap-4">
+            <p className="text-sm text-[var(--text-secondary)]">
               Halaman {page} dari {totalPages}
             </p>
             <div className="flex gap-2">
@@ -211,7 +208,7 @@ export default function AdminAuditPage() {
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </DashboardLayout>
   )
 }

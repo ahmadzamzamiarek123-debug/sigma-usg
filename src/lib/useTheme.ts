@@ -1,30 +1,58 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useCallback, useSyncExternalStore } from 'react'
+
+let currentTheme: 'light' | 'dark' = 'light'
+if (typeof window !== 'undefined') {
+  currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+}
+
+const listeners = new Set<() => void>()
+
+function notifyListeners() {
+  listeners.forEach(l => l())
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+function getSnapshot() {
+  return currentTheme
+}
+
+function getServerSnapshot() {
+  return 'light' as const
+}
 
 export function useTheme() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   useEffect(() => {
-    // Check localStorage first
+    // Initialization only runs once to capture default/stored theme
     const stored = localStorage.getItem('theme')
+    let resolvedTheme: 'light' | 'dark' = 'light'
     if (stored === 'dark' || stored === 'light') {
-      setTheme(stored)
-      document.documentElement.classList.toggle('dark', stored === 'dark')
+      resolvedTheme = stored
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setTheme(prefersDark ? 'dark' : 'light')
-      document.documentElement.classList.toggle('dark', prefersDark)
+      resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    if (resolvedTheme !== currentTheme) {
+      currentTheme = resolvedTheme
+      document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+      notifyListeners()
     }
   }, [])
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
+  const toggleTheme = useCallback(() => {
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light'
+    currentTheme = newTheme
     localStorage.setItem('theme', newTheme)
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
-  }
+    notifyListeners()
+  }, [])
 
   return { theme, toggleTheme }
 }
