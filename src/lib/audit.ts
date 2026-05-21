@@ -18,6 +18,7 @@ type AuditAction =
   | "OPERATOR_CREATED"
   | "OPERATOR_DELETED"
   | "OPERATOR_STATUS_CHANGED"
+  | "USER_CREATED"
   | "USER_STATUS_CHANGED"
   | "USER_PRODI_CHANGED"
   | "USER_PASSWORD_RESET"
@@ -71,7 +72,16 @@ export function formatAuditAction(action: string): string {
     TRANSFER_RECEIVED: "Transfer diterima",
     TAGIHAN_CREATED: "Tagihan dibuat",
     TAGIHAN_UPDATED: "Tagihan diperbarui",
+    TAGIHAN_DELETED: "Tagihan dihapus",
+    TAGIHAN_STATUS_CHANGED: "Status tagihan diubah",
+    USER_CREATED: "Mahasiswa baru ditambahkan",
+    USER_STATUS_CHANGED: "Status mahasiswa diubah",
+    USER_PRODI_CHANGED: "Prodi mahasiswa diubah",
+    USER_PASSWORD_RESET: "Password mahasiswa direset",
     OPERATOR_CREATED: "Operator baru ditambahkan",
+    OPERATOR_DELETED: "Operator dihapus",
+    OPERATOR_STATUS_CHANGED: "Status operator diubah",
+    PENGELUARAN_CREATED: "Pengeluaran prodi dicatat",
     PROFILE_UPDATED: "Profil diperbarui",
     PASSWORD_CHANGED: "Password diubah",
     PIN_CHANGED: "PIN diubah",
